@@ -534,6 +534,10 @@
     display: inline-block;
   }
 </style>
+
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -611,6 +615,7 @@ async function verifierLogin() {
   if (user === AUTH.user && hash === AUTH.passHash) {
     sessionStorage.setItem('oad_auth', '1');
     document.getElementById('login-overlay').style.display = 'none';
+    demarrerSync();
   } else {
     errEl.style.display = 'block';
     document.getElementById('login-pass').value = '';
@@ -1052,20 +1057,55 @@ const DEFAULT_CRITERES = {
   bj_min: 1.30,       bj_cible: 1.50,       bj_max: 3.0,
 };
 
+// ========================
+// FIREBASE / FIRESTORE
+// ========================
+const firebaseConfig = {
+  apiKey:            "AIzaSyDsyJrDjaU--2LFdLpGsPVyvF81ilMQkdM",
+  authDomain:        "oad-vendange.firebaseapp.com",
+  projectId:         "oad-vendange",
+  storageBucket:     "oad-vendange.firebasestorage.app",
+  messagingSenderId: "508720223755",
+  appId:             "1:508720223755:web:5979caccbd4ae2f9da590e",
+  measurementId:     "G-7ZYQFGVYLM"
+};
+firebase.initializeApp(firebaseConfig);
+const db     = firebase.firestore();
+const OAD_DOC = db.collection('oad').doc('shared');
+
+let _syncListener = null; // référence au listener onSnapshot
+
+function demarrerSync() {
+  if (_syncListener) return; // déjà démarré
+  // Indicateur de chargement discret
+  const nav = document.querySelector('nav');
+  if (nav) nav.style.opacity = '0.5';
+
+  _syncListener = OAD_DOC.onSnapshot((doc) => {
+    if (doc.exists) {
+      const data = doc.data();
+      state.parcelles = data.parcelles || [];
+      state.criteres  = data.criteres  || { 'Défaut': { ...DEFAULT_CRITERES } };
+      state.analyses  = data.analyses  || {};
+    }
+    // Restaurer UI et re-rendre
+    if (nav) nav.style.opacity = '1';
+    renderParcelles();
+    mettreAJourIndices();
+  }, (err) => {
+    console.error('Firestore sync error:', err);
+    if (nav) nav.style.opacity = '1';
+  });
+}
+
 function initCriteres() {
-  const raw = JSON.parse(localStorage.getItem('oad_criteres') || 'null');
-  if (!raw) return { 'Défaut': { ...DEFAULT_CRITERES } };
-  // Migration : si l'ancien format est un objet plat (pas de clé 'Défaut')
-  if (raw && typeof raw === 'object' && !raw['Défaut'] && (raw.ph_min !== undefined || raw.ph_max !== undefined)) {
-    return { 'Défaut': raw };
-  }
-  return raw;
+  return { 'Défaut': { ...DEFAULT_CRITERES } };
 }
 
 let state = {
-  parcelles: JSON.parse(localStorage.getItem('oad_parcelles') || '[]'),
+  parcelles: [],
   criteres:  initCriteres(),
-  analyses:  JSON.parse(localStorage.getItem('oad_analyses')  || '{}')
+  analyses:  {}
 };
 let openHistoriqueIdx = null; // index de la parcelle dont l'historique est ouvert
 
@@ -2397,12 +2437,15 @@ function wcodeToIcon(wc, tmax) {
 }
 
 // ========================
-// PERSISTANCE
+// PERSISTANCE (Firestore)
 // ========================
 function sauvegarder() {
-  localStorage.setItem('oad_parcelles', JSON.stringify(state.parcelles));
-  localStorage.setItem('oad_criteres',  JSON.stringify(state.criteres));
-  localStorage.setItem('oad_analyses',  JSON.stringify(state.analyses));
+  OAD_DOC.set({
+    parcelles:  state.parcelles,
+    criteres:   state.criteres,
+    analyses:   state.analyses,
+    updatedAt:  firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(err => console.error('Firestore save error:', err));
 }
 
 // ========================
@@ -2651,11 +2694,16 @@ function openAnalyseModal(parcIdx, anaIdx) {
 // INIT
 // ========================
 document.addEventListener('DOMContentLoaded', () => {
-  renderParcelles();
   document.getElementById('dec-date').valueAsDate = new Date();
   genererInputsMeteo();
   bindIndices();
   mettreAJourIndices();
+  // Si session déjà active (refresh page), démarrer la sync Firestore directement
+  if (sessionStorage.getItem('oad_auth') === '1') {
+    demarrerSync();
+  } else {
+    renderParcelles(); // affiche liste vide en attendant le login
+  }
 });
 </script>
 
