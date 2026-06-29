@@ -537,6 +537,101 @@
 </head>
 <body>
 
+<!-- ===================== LOGIN OVERLAY ===================== -->
+<div id="login-overlay" style="
+  position:fixed; inset:0; z-index:9999;
+  background:linear-gradient(135deg, #5a0f1e 0%, #7B1C2E 60%, #3a0b14 100%);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Segoe UI',system-ui,sans-serif;
+">
+  <div style="
+    background:rgba(255,255,255,0.07);
+    border:1px solid rgba(201,168,76,0.35);
+    border-radius:16px;
+    padding:40px 44px 36px;
+    width:340px;
+    box-shadow:0 8px 40px rgba(0,0,0,0.45);
+    text-align:center;
+  ">
+    <div style="font-size:2.8em;margin-bottom:8px;">🍇</div>
+    <div style="color:#C9A84C;font-weight:700;font-size:1.15em;letter-spacing:1px;margin-bottom:2px;">OAD VENDANGE</div>
+    <div style="color:rgba(255,255,255,0.5);font-size:0.78em;margin-bottom:28px;letter-spacing:0.3px;">Accès restreint</div>
+
+    <div style="text-align:left;margin-bottom:14px;">
+      <label style="color:rgba(255,255,255,0.7);font-size:0.8em;display:block;margin-bottom:5px;">Identifiant</label>
+      <input id="login-user" type="text" autocomplete="username" placeholder="identifiant" style="
+        width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(201,168,76,0.3);
+        background:rgba(255,255,255,0.1);color:white;font-size:0.95em;outline:none;
+      ">
+    </div>
+    <div style="text-align:left;margin-bottom:22px;">
+      <label style="color:rgba(255,255,255,0.7);font-size:0.8em;display:block;margin-bottom:5px;">Mot de passe</label>
+      <input id="login-pass" type="password" autocomplete="current-password" placeholder="••••••" style="
+        width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(201,168,76,0.3);
+        background:rgba(255,255,255,0.1);color:white;font-size:0.95em;outline:none;
+      ">
+    </div>
+
+    <div id="login-error" style="
+      display:none;color:#ff8a8a;font-size:0.8em;margin-bottom:14px;
+    ">Identifiant ou mot de passe incorrect.</div>
+
+    <button onclick="verifierLogin()" style="
+      width:100%;padding:11px;background:#C9A84C;border:none;border-radius:8px;
+      color:#3a0b14;font-weight:700;font-size:0.95em;cursor:pointer;letter-spacing:0.5px;
+      transition:opacity 0.15s;
+    " onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+      Connexion
+    </button>
+
+    <div style="margin-top:22px;color:rgba(255,255,255,0.25);font-size:0.7em;letter-spacing:0.5px;">
+      AOÛTAT STUDIO · by Basile Boulay
+    </div>
+  </div>
+</div>
+
+<script>
+// Hash SHA-256 du mot de passe via Web Crypto API
+async function sha256(message) {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+const AUTH = {
+  user: 'oad',
+  passHash: '842b04095311c62187b24d2f738bd982edb44baa1b574165f8014fe10cac6d8a'
+};
+
+async function verifierLogin() {
+  const user  = document.getElementById('login-user').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  const hash  = await sha256(pass);
+  if (user === AUTH.user && hash === AUTH.passHash) {
+    sessionStorage.setItem('oad_auth', '1');
+    document.getElementById('login-overlay').style.display = 'none';
+  } else {
+    errEl.style.display = 'block';
+    document.getElementById('login-pass').value = '';
+    document.getElementById('login-pass').focus();
+  }
+}
+
+// Appuyer sur Entrée pour valider
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('login-overlay').style.display !== 'none') {
+    verifierLogin();
+  }
+});
+
+// Vérifier si déjà authentifié dans la session
+if (sessionStorage.getItem('oad_auth') === '1') {
+  document.getElementById('login-overlay').style.display = 'none';
+}
+</script>
+<!-- ===================== FIN LOGIN ===================== -->
+
 <header>
   <div class="logo">🍇</div>
   <div>
