@@ -1,0 +1,2725 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OAD Vendange — Bourgogne</title>
+<style>
+  :root {
+    --rouge: #7B1C2E;
+    --rouge-clair: #A93048;
+    --or: #C9A84C;
+    --or-clair: #E8D5A3;
+    --beige: #F5F0E8;
+    --gris: #4A4A4A;
+    --gris-clair: #F0EDE8;
+    --vert: #2D6A4F;
+    --vert-clair: #D8F3DC;
+    --orange: #E76F51;
+    --orange-clair: #FFE8E0;
+    --blanc: #FFFFFF;
+    --ombre: 0 2px 12px rgba(0,0,0,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--beige);
+    color: var(--gris);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--rouge);
+    color: white;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  header .logo { font-size: 2em; }
+  header h1 { font-size: 1.3em; font-weight: 700; letter-spacing: 0.5px; }
+  header p { font-size: 0.82em; opacity: 0.85; margin-top: 2px; }
+
+  nav {
+    background: var(--blanc);
+    border-bottom: 2px solid var(--or);
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  nav button {
+    padding: 14px 22px;
+    border: none;
+    background: none;
+    font-size: 0.95em;
+    font-weight: 600;
+    color: var(--gris);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  nav button.active {
+    color: var(--rouge);
+    border-bottom-color: var(--rouge);
+    background: var(--beige);
+  }
+  nav button:hover:not(.active) { background: var(--gris-clair); }
+
+  main { padding: 20px 16px; max-width: 900px; margin: 0 auto; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--blanc);
+    border-radius: 12px;
+    box-shadow: var(--ombre);
+    padding: 22px;
+    margin-bottom: 18px;
+  }
+  .card h2 {
+    font-size: 1.05em;
+    font-weight: 700;
+    color: var(--rouge);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card h3 {
+    font-size: 0.92em;
+    font-weight: 600;
+    color: var(--gris);
+    margin: 14px 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+  }
+
+  /* FORMULAIRE */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 0.82em; font-weight: 600; color: var(--gris); opacity: 0.75; }
+  .field input, .field select {
+    padding: 10px 12px;
+    border: 1.5px solid #DDD;
+    border-radius: 8px;
+    font-size: 0.95em;
+    transition: border-color 0.2s;
+    background: var(--blanc);
+  }
+  .field input:focus, .field select:focus {
+    outline: none;
+    border-color: var(--rouge);
+  }
+  .field .unit {
+    font-size: 0.75em;
+    color: #999;
+    margin-top: -2px;
+  }
+
+  /* SEUILS */
+  .seuil-row {
+    display: grid;
+    grid-template-columns: 1fr 78px 78px 78px;
+    gap: 8px;
+    align-items: end;
+    margin-bottom: 10px;
+  }
+  .seuil-row label { font-size: 0.85em; font-weight: 500; padding-bottom: 4px; }
+  .seuil-row > div { display: flex; flex-direction: column; }
+  .seuil-row input {
+    width: 100%;
+    padding: 7px 4px;
+    border: 1.5px solid #DDD;
+    border-radius: 8px;
+    font-size: 0.88em;
+    text-align: center;
+  }
+  .seuil-row input:focus { outline: none; border-color: var(--rouge); }
+  .seuil-header {
+    display: none;
+  }
+  .seuil-header span {
+    font-size: 0.75em;
+    text-align: center;
+    color: #999;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  /* BOUTON */
+  .btn {
+    background: var(--rouge);
+    color: white;
+    border: none;
+    padding: 13px 28px;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    transition: background 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .btn:hover { background: var(--rouge-clair); }
+  .btn.secondary {
+    background: var(--gris-clair);
+    color: var(--gris);
+    border: 1.5px solid #DDD;
+  }
+  .btn.secondary:hover { background: #E5E0DA; }
+
+  /* RÉSULTAT DÉCISION */
+  #resultat-decision { margin-top: 18px; }
+
+  .verdict {
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+  .verdict.pret { background: var(--vert-clair); border: 2px solid var(--vert); }
+  .verdict.attente { background: var(--orange-clair); border: 2px solid var(--orange); }
+  .verdict.early { background: #FFF9DB; border: 2px solid #F59F00; }
+
+  .verdict .icone { font-size: 2.5em; margin-bottom: 8px; }
+  .verdict .titre { font-size: 1.25em; font-weight: 800; margin-bottom: 4px; }
+  .verdict .sous-titre { font-size: 0.9em; opacity: 0.8; }
+
+  .jauges { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+  .jauge-item { }
+  .jauge-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82em;
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .jauge-bar {
+    height: 10px;
+    background: #E5E5E5;
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+  }
+  .jauge-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.5s;
+  }
+  .jauge-fill.ok { background: var(--vert); }
+  .jauge-fill.warn { background: var(--orange); }
+  .jauge-fill.nok { background: var(--rouge); }
+
+  /* TABLEAU MÉTÉO */
+  .meteo-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-top: 10px;
+  }
+  @media (max-width: 600px) { .meteo-grid { grid-template-columns: repeat(4, 1fr); } }
+
+  .meteo-jour {
+    background: var(--gris-clair);
+    border-radius: 8px;
+    padding: 10px 6px;
+    text-align: center;
+    font-size: 0.8em;
+  }
+  .meteo-jour .jour { font-weight: 700; color: var(--rouge); font-size: 0.9em; }
+  .meteo-jour .icone { font-size: 1.5em; margin: 4px 0; }
+  .meteo-jour .temp { font-size: 0.82em; }
+  .meteo-jour .tmax { font-weight: 700; color: var(--orange); }
+  .meteo-jour .tmin { color: #888; }
+  .meteo-jour .gdd { margin-top: 4px; font-size: 0.75em; color: var(--vert); font-weight: 600; }
+
+  /* PRÉDICTION COURBE */
+  .pred-card {
+    background: var(--gris-clair);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 10px;
+  }
+  .pred-ligne {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #DDD;
+    font-size: 0.9em;
+  }
+  .pred-ligne:last-child { border-bottom: none; }
+  .pred-ligne .param { font-weight: 600; }
+  .pred-ligne .valeurs { display: flex; gap: 14px; align-items: center; }
+  .pred-ligne .auj { color: #888; font-size: 0.85em; }
+  .pred-ligne .dans7 { font-weight: 700; font-size: 1em; }
+  .pred-ligne .fleche { color: #BBB; font-size: 1.1em; }
+  .badge {
+    font-size: 0.72em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .badge.ok { background: var(--vert-clair); color: var(--vert); }
+  .badge.warn { background: var(--orange-clair); color: var(--orange); }
+  .badge.nok { background: #FDECEA; color: var(--rouge); }
+
+  /* PARCELLES */
+  .parcelle-list { display: flex; flex-direction: column; gap: 10px; }
+  .parcelle-item {
+    background: var(--gris-clair);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all 0.2s;
+  }
+  .parcelle-item:hover { border-color: var(--or); }
+  .parcelle-item .nom { font-weight: 700; font-size: 0.95em; }
+  .parcelle-item .details { font-size: 0.8em; color: #888; margin-top: 2px; }
+  .parcelle-item .status { font-size: 1.5em; }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #BBB;
+    font-size: 0.95em;
+  }
+  .empty-state .icone { font-size: 3em; margin-bottom: 10px; }
+
+  /* HISTORIQUE PARCELLE */
+  .histo-panel {
+    display: none;
+    margin-top: 10px;
+    border-top: 1px solid var(--or-clair);
+    padding-top: 10px;
+  }
+  .histo-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82em;
+  }
+  .histo-table th {
+    padding: 6px 8px;
+    background: var(--gris-clair);
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #888;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .histo-table td {
+    padding: 7px 8px;
+    border-bottom: 1px solid #F0EDE8;
+    vertical-align: middle;
+  }
+  .histo-table tr:last-child td { border-bottom: none; }
+  .histo-table tr:hover td { background: #FAFAF8; }
+  .btn-histo {
+    background: none;
+    border: 1.5px solid var(--or-clair);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: var(--rouge);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .btn-histo:hover { background: var(--beige); }
+  .btn-histo.open { background: var(--rouge); color: white; border-color: var(--rouge); }
+
+  /* MODALE ANALYSE COMPLÈTE */
+  #analyse-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.52);
+    z-index: 1000;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 16px;
+    overflow-y: auto;
+  }
+  #analyse-modal.open { display: flex; }
+  .modal-box {
+    background: var(--blanc);
+    border-radius: 14px;
+    max-width: 720px;
+    width: 100%;
+    margin: auto;
+    box-shadow: 0 12px 50px rgba(0,0,0,0.35);
+    overflow: hidden;
+  }
+  .modal-header {
+    background: var(--rouge);
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .modal-header h2 { font-size: 1.05em; font-weight: 700; margin: 0; }
+  .modal-header .sub { font-size: 0.8em; opacity: 0.85; margin-top: 2px; }
+  .modal-close {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 1.2em;
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 2px 8px;
+    line-height: 1.4;
+    flex-shrink: 0;
+    margin-left: 10px;
+  }
+  .modal-close:hover { background: rgba(255,255,255,0.35); }
+  .modal-body { padding: 18px 20px; }
+  .modal-section {
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--or-clair);
+  }
+  .modal-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .modal-section h3 {
+    font-size: 0.82em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #888;
+    margin-bottom: 10px;
+  }
+  .val-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
+  }
+  .val-chip {
+    background: var(--gris-clair);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.82em;
+  }
+  .val-chip .lbl { color: #999; font-size: 0.9em; margin-bottom: 2px; }
+  .val-chip .val { font-weight: 700; font-size: 1.05em; color: var(--gris); }
+  .histo-row-click { cursor: pointer; }
+  .histo-row-click:hover td { background: #F0EDE8 !important; }
+
+  /* INFOS */
+  .info-box {
+    background: #EEF4FF;
+    border: 1px solid #C5D8FF;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 0.83em;
+    color: #3A5FA0;
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--or-clair);
+    margin: 16px 0;
+  }
+
+  /* TABS internes */
+  .inner-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .inner-tab {
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1.5px solid #DDD;
+    background: none;
+    font-size: 0.85em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .inner-tab.active { background: var(--rouge); color: white; border-color: var(--rouge); }
+
+  .score-global {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--gris-clair);
+    border-radius: 10px;
+    margin-top: 10px;
+  }
+  .score-cercle {
+    width: 70px; height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    font-weight: 800;
+    font-size: 1.2em;
+    border: 4px solid;
+  }
+  .score-cercle.vert { border-color: var(--vert); color: var(--vert); background: var(--vert-clair); }
+  .score-cercle.orange { border-color: var(--orange); color: var(--orange); background: var(--orange-clair); }
+  .score-cercle.rouge { border-color: var(--rouge); color: var(--rouge); background: #FDECEA; }
+  .score-label { font-size: 0.85em; color: #666; }
+
+  /* MÉTÉO AUTO */
+  .btn-meteo {
+    background: #1A6B9F;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.92em;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 14px;
+    transition: background 0.2s;
+  }
+  .btn-meteo:hover { background: #155a87; }
+  .btn-meteo:disabled { background: #AAA; cursor: not-allowed; }
+
+  .spinner {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .meteo-status {
+    font-size: 0.8em;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    display: none;
+  }
+  .meteo-status.ok { background: var(--vert-clair); color: var(--vert); display: block; }
+  .meteo-status.err { background: #FDECEA; color: var(--rouge); display: block; }
+
+  .coord-badge {
+    font-size: 0.72em;
+    color: #1A6B9F;
+    background: #EEF4FF;
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-top: 2px;
+    display: inline-block;
+  }
+</style>
+
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<!-- ===================== LOGIN OVERLAY ===================== -->
+<div id="login-overlay" style="
+  position:fixed; inset:0; z-index:9999;
+  background:linear-gradient(135deg, #5a0f1e 0%, #7B1C2E 60%, #3a0b14 100%);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Segoe UI',system-ui,sans-serif;
+">
+  <div style="
+    background:rgba(255,255,255,0.07);
+    border:1px solid rgba(201,168,76,0.35);
+    border-radius:16px;
+    padding:40px 44px 36px;
+    width:340px;
+    box-shadow:0 8px 40px rgba(0,0,0,0.45);
+    text-align:center;
+  ">
+    <div style="font-size:2.8em;margin-bottom:8px;">🍇</div>
+    <div style="color:#C9A84C;font-weight:700;font-size:1.15em;letter-spacing:1px;margin-bottom:2px;">OAD VENDANGE</div>
+    <div style="color:rgba(255,255,255,0.5);font-size:0.78em;margin-bottom:28px;letter-spacing:0.3px;">Accès restreint</div>
+
+    <div style="text-align:left;margin-bottom:14px;">
+      <label style="color:rgba(255,255,255,0.7);font-size:0.8em;display:block;margin-bottom:5px;">Identifiant</label>
+      <input id="login-user" type="text" autocomplete="username" placeholder="identifiant" style="
+        width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(201,168,76,0.3);
+        background:rgba(255,255,255,0.1);color:white;font-size:0.95em;outline:none;
+      ">
+    </div>
+    <div style="text-align:left;margin-bottom:22px;">
+      <label style="color:rgba(255,255,255,0.7);font-size:0.8em;display:block;margin-bottom:5px;">Mot de passe</label>
+      <input id="login-pass" type="password" autocomplete="current-password" placeholder="••••••" style="
+        width:100%;padding:10px 14px;border-radius:8px;border:1px solid rgba(201,168,76,0.3);
+        background:rgba(255,255,255,0.1);color:white;font-size:0.95em;outline:none;
+      ">
+    </div>
+
+    <div id="login-error" style="
+      display:none;color:#ff8a8a;font-size:0.8em;margin-bottom:14px;
+    ">Identifiant ou mot de passe incorrect.</div>
+
+    <button onclick="verifierLogin()" style="
+      width:100%;padding:11px;background:#C9A84C;border:none;border-radius:8px;
+      color:#3a0b14;font-weight:700;font-size:0.95em;cursor:pointer;letter-spacing:0.5px;
+      transition:opacity 0.15s;
+    " onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+      Connexion
+    </button>
+
+    <div style="margin-top:22px;color:rgba(255,255,255,0.25);font-size:0.7em;letter-spacing:0.5px;">
+      AOÛTAT STUDIO · by Basile Boulay
+    </div>
+  </div>
+</div>
+
+<script>
+// Hash SHA-256 du mot de passe via Web Crypto API
+async function sha256(message) {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+const AUTH = {
+  user: 'oad',
+  passHash: '842b04095311c62187b24d2f738bd982edb44baa1b574165f8014fe10cac6d8a'
+};
+
+async function verifierLogin() {
+  const user  = document.getElementById('login-user').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const errEl = document.getElementById('login-error');
+  const hash  = await sha256(pass);
+  if (user === AUTH.user && hash === AUTH.passHash) {
+    sessionStorage.setItem('oad_auth', '1');
+    document.getElementById('login-overlay').style.display = 'none';
+    demarrerSync();
+  } else {
+    errEl.style.display = 'block';
+    document.getElementById('login-pass').value = '';
+    document.getElementById('login-pass').focus();
+  }
+}
+
+// Appuyer sur Entrée pour valider
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('login-overlay').style.display !== 'none') {
+    verifierLogin();
+  }
+});
+
+// Vérifier si déjà authentifié dans la session
+if (sessionStorage.getItem('oad_auth') === '1') {
+  document.getElementById('login-overlay').style.display = 'none';
+}
+</script>
+<!-- ===================== FIN LOGIN ===================== -->
+
+<header>
+  <div class="logo">🍇</div>
+  <div>
+    <h1>OAD Vendange — Bourgogne</h1>
+    <p>Outil d'Aide à la Décision — Maturité phénolique & technologique</p>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showPage(this,'parcelles')">📍 Parcelles</button>
+  <button onclick="showPage(this,'decision')">✅ Décision</button>
+  <button onclick="showPage(this,'prediction')">🔮 Prédiction J+1→J+7</button>
+  <button onclick="showPage(this,'criteres')">⚙️ Mes Critères</button>
+</nav>
+
+<main>
+
+<!-- PAGE PARCELLES -->
+<div class="page active" id="page-parcelles">
+  <div class="card">
+    <h2>📍 Mes Parcelles</h2>
+    <div class="parcelle-list" id="parcelle-list">
+      <div class="empty-state">
+        <div class="icone">🗺️</div>
+        Aucune parcelle enregistrée.<br>Ajoutez votre première parcelle ci-dessous.
+      </div>
+    </div>
+    <div class="divider"></div>
+    <h3>Ajouter une parcelle</h3>
+    <div class="form-grid">
+      <div class="field">
+        <label>Nom de la parcelle</label>
+        <input type="text" id="parc-nom" placeholder="ex: Les Crais">
+      </div>
+      <div class="field">
+        <label>Appellation</label>
+        <input type="text" id="parc-appellation" placeholder="ex: Gevrey-Chambertin" list="appellation-list">
+        <datalist id="appellation-list">
+          <option value="Gevrey-Chambertin">
+          <option value="Chambolle-Musigny">
+          <option value="Vosne-Romanée">
+          <option value="Nuits-Saint-Georges">
+          <option value="Morey-Saint-Denis">
+          <option value="Vougeot">
+          <option value="Flagey-Échézeaux">
+          <option value="Aloxe-Corton">
+          <option value="Pommard">
+          <option value="Volnay">
+          <option value="Meursault">
+          <option value="Puligny-Montrachet">
+          <option value="Chassagne-Montrachet">
+          <option value="Bourgogne">
+        </datalist>
+      </div>
+      <div class="field">
+        <label>Cépage</label>
+        <select id="parc-cepage">
+          <option value="Pinot Noir">Pinot Noir</option>
+          <option value="Chardonnay">Chardonnay</option>
+          <option value="Aligoté">Aligoté</option>
+          <option value="Gamay">Gamay</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Code postal</label>
+        <input type="text" id="parc-cp" placeholder="ex: 21220" maxlength="5" pattern="[0-9]{5}">
+      </div>
+      <div class="field">
+        <label>Commune / Lieu-dit</label>
+        <input type="text" id="parc-lieu" placeholder="ex: Gevrey-Chambertin">
+      </div>
+      <div class="field">
+        <label>Surface (ha)</label>
+        <input type="number" id="parc-surface" placeholder="0.50" step="0.01" min="0">
+      </div>
+    </div>
+
+    <div style="margin-top:10px;padding:10px 14px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);">
+      <div style="font-size:0.82em;color:#888;margin-bottom:8px;">
+        📍 <strong>Coordonnées GPS</strong> (pour la météo automatique) —
+        <a href="https://maps.google.com" target="_blank" style="color:var(--rouge);">Trouver sur Google Maps</a>
+        <span style="color:#aaa;"> → clic droit sur la parcelle → copier les coordonnées</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="field" style="margin:0;">
+          <label>Latitude</label>
+          <input type="number" id="parc-lat" placeholder="ex: 47.2224" step="0.0001">
+        </div>
+        <div class="field" style="margin:0;">
+          <label>Longitude</label>
+          <input type="number" id="parc-lon" placeholder="ex: 5.0038" step="0.0001">
+        </div>
+      </div>
+    </div>
+
+    <button class="btn" onclick="ajouterParcelle()" style="margin-top:14px;">+ Ajouter la parcelle</button>
+  </div>
+</div>
+
+<!-- PAGE DÉCISION -->
+<div class="page" id="page-decision">
+  <div class="card">
+    <h2>✅ Analyse de maturité</h2>
+
+    <div class="form-grid" style="margin-bottom:12px;">
+      <div class="field">
+        <label>Parcelle</label>
+        <select id="dec-parcelle">
+          <option value="">— Sélectionner —</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Date d'analyse</label>
+        <input type="date" id="dec-date">
+      </div>
+    </div>
+
+    <button class="btn secondary" onclick="chargerDonneesDemoGlories()" style="margin-bottom:14px;font-size:0.85em;padding:10px 16px;">
+      🧪 Charger données test — Demoiselles 1 (20/08/2025)
+    </button>
+
+    <h3>🔬 Analyses physico-chimiques</h3>
+    <div class="form-grid">
+      <div class="field">
+        <label>pH</label>
+        <input type="number" id="dec-ph" placeholder="3.25" step="0.01">
+        <span class="unit">unité pH</span>
+      </div>
+      <div class="field">
+        <label>Acidité totale (AT)</label>
+        <input type="number" id="dec-at" placeholder="5.5" step="0.01">
+        <span class="unit">g/L H₂SO₄</span>
+      </div>
+      <div class="field">
+        <label>Acidité volatile (AV)</label>
+        <input type="number" id="dec-av" placeholder="0.07" step="0.01">
+        <span class="unit">g/L H₂SO₄</span>
+      </div>
+      <div class="field">
+        <label>Sucres</label>
+        <input type="number" id="dec-sucre" placeholder="180" step="0.1">
+        <span class="unit">g/L</span>
+      </div>
+      <div class="field">
+        <label>TAV probable (TAVP)</label>
+        <input type="number" id="dec-tavp" placeholder="10.3" step="0.1">
+        <span class="unit">% vol.</span>
+      </div>
+      <div class="field">
+        <label>Densité</label>
+        <input type="number" id="dec-densite" placeholder="1077" step="0.1">
+        <span class="unit">g/cm³ × 10⁻³</span>
+      </div>
+      <div class="field">
+        <label>Acide malique (MH₂)</label>
+        <input type="number" id="dec-malique" placeholder="2.0" step="0.1">
+        <span class="unit">g/L</span>
+      </div>
+      <div class="field">
+        <label>Acide tartrique (TH₂)</label>
+        <input type="number" id="dec-tartrique" placeholder="7.5" step="0.1">
+        <span class="unit">g/L</span>
+      </div>
+      <div class="field">
+        <label>Acide gluconique</label>
+        <input type="number" id="dec-gluconique" placeholder="5" step="0.1">
+        <span class="unit">mg/L (Botrytis)</span>
+      </div>
+    </div>
+
+    <h3>⚗️ Azote & Métaux</h3>
+    <div class="form-grid">
+      <div class="field">
+        <label>N ammoniacal</label>
+        <input type="number" id="dec-n-ammo" placeholder="105" step="1">
+        <span class="unit">mg/L</span>
+      </div>
+      <div class="field">
+        <label>N aminé</label>
+        <input type="number" id="dec-n-amine" placeholder="123" step="1">
+        <span class="unit">mg/L</span>
+      </div>
+      <div class="field">
+        <label>Fer</label>
+        <input type="number" id="dec-fer" placeholder="0.14" step="0.01">
+        <span class="unit">mg/L</span>
+      </div>
+      <div class="field">
+        <label>Cuivre (Cu)</label>
+        <input type="number" id="dec-cu" placeholder="0.1" step="0.01">
+        <span class="unit">mg/L</span>
+      </div>
+    </div>
+
+    <h3>🧪 Tests de Glories — Maturité phénolique</h3>
+    <div class="form-grid">
+      <div class="field">
+        <label>Masse des baies</label>
+        <input type="number" id="dec-masse-baies" placeholder="160" step="0.1">
+        <span class="unit">g</span>
+      </div>
+      <div class="field">
+        <label>Masse du jus</label>
+        <input type="number" id="dec-masse-jus" placeholder="100" step="0.1">
+        <span class="unit">g</span>
+      </div>
+      <div class="field">
+        <label>DO 280 — pH 3,5</label>
+        <input type="number" id="dec-do280" placeholder="56.9" step="0.1">
+        <span class="unit">Absorbance</span>
+      </div>
+      <div class="field">
+        <label>Aph 3,5 — Anthocyanes pH 3,5</label>
+        <input type="number" id="dec-aph35" placeholder="653" step="1">
+        <span class="unit">mg/L</span>
+      </div>
+      <div class="field">
+        <label>Aph 1 — Anthocyanes pH 1</label>
+        <input type="number" id="dec-aph1" placeholder="790" step="1">
+        <span class="unit">mg/L</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h3>📐 Indices calculés automatiquement</h3>
+    <div id="indices-calcules" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;">
+      <div class="pred-card" style="padding:12px;">
+        <div style="font-size:0.78em;color:#888;font-weight:600;margin-bottom:4px;">MP% — MATURITÉ PHÉNOLIQUE</div>
+        <div style="font-size:1.4em;font-weight:800;color:var(--rouge);" id="val-imp">—</div>
+        <div style="font-size:0.75em;color:#999;margin-top:2px;">(DO280 − Aph3,5/1000×40) / DO280 × 100</div>
+      </div>
+      <div class="pred-card" style="padding:12px;">
+        <div style="font-size:0.78em;color:#888;font-weight:600;margin-bottom:4px;">EA% — EXTRACTIBILITÉ ANTHOCYANES</div>
+        <div style="font-size:1.4em;font-weight:800;color:var(--rouge);" id="val-ea">—</div>
+        <div style="font-size:0.75em;color:#999;margin-top:2px;">(Aph1 − Aph3,5) / Aph1 × 100 (cible &lt; 40%)</div>
+      </div>
+      <div class="pred-card" style="padding:12px;">
+        <div style="font-size:0.78em;color:#888;font-weight:600;margin-bottom:4px;">RAPPORT BAIES/JUS</div>
+        <div style="font-size:1.4em;font-weight:800;color:var(--rouge);" id="val-rapport-bj">—</div>
+        <div style="font-size:0.75em;color:#999;margin-top:2px;">Masse baies / Masse jus</div>
+      </div>
+      <div class="pred-card" style="padding:12px;">
+        <div style="font-size:0.78em;color:#888;font-weight:600;margin-bottom:4px;">RAPPORT SUCRE / AT</div>
+        <div style="font-size:1.4em;font-weight:800;color:var(--rouge);" id="val-sat">—</div>
+        <div style="font-size:0.75em;color:#999;margin-top:2px;">Sucres (g/L) / AT — indicateur van Leeuwen</div>
+      </div>
+      <div class="pred-card" style="padding:12px;">
+        <div style="font-size:0.78em;color:#888;font-weight:600;margin-bottom:4px;">N ASSIMILABLE (calculé)</div>
+        <div style="font-size:1.4em;font-weight:800;color:var(--rouge);" id="val-n-assim">—</div>
+        <div style="font-size:0.75em;color:#999;margin-top:2px;">N ammoniacal + N aminé (cible ≥ 140 mg/L)</div>
+      </div>
+    </div>
+
+    <button class="btn" onclick="calculerDecision()" style="margin-top:16px;">📊 Analyser la maturité</button>
+  </div>
+
+  <div id="resultat-decision"></div>
+</div>
+
+<!-- PAGE PRÉDICTION -->
+<div class="page" id="page-prediction">
+  <div class="card">
+    <h2>🔮 Prédiction J+1 → J+7</h2>
+    <div class="info-box">
+      Projection J+1→J+7 basée sur les degrés-jours cumulés (Tb = 0 °C) post-véraison.<br>
+      <strong>TAVP</strong> : +0,008 %vol/GDD·j (Coombe 1992 ; Ribéreau-Gayon et al. 2012) ·
+      <strong>MH₂</strong> : −0,004 g/L/GDD·j (Kliewer 1977 ; Sweetman et al. 2009) ·
+      <strong>TH₂</strong> : stable (Coombe 1992) ·
+      <strong>MP%</strong> : projeté via <em>Aph3,5 = −2,56 × MB + 1055</em> (régression Bourgogne Pinot Noir, R²=0,48) + formule Glories (DO280 supposée stable). <strong>B/J</strong> : retiré (redondant avec MB).
+    </div>
+
+    <h3>Données actuelles</h3>
+    <div class="form-grid">
+      <div class="field">
+        <label>Parcelle</label>
+        <select id="pred-parcelle">
+          <option value="">— Sélectionner —</option>
+        </select>
+      </div>
+      <div id="pred-info-derniere-analyse" style="grid-column:1/-1;display:none;padding:8px 12px;background:#e8f4fd;border-left:3px solid #4a90d9;border-radius:6px;font-size:0.82em;color:#2c5f8a;"></div>
+      <div class="field">
+        <label>Date de véraison</label>
+        <input type="date" id="pred-veraison">
+      </div>
+      <div class="field">
+        <label>TAVP actuel (% vol.)</label>
+        <input type="number" id="pred-sucre" placeholder="11.5" step="0.1">
+      </div>
+      <div class="field">
+        <label>Acidité totale actuelle (g/L)</label>
+        <input type="number" id="pred-at" placeholder="6.0" step="0.1">
+      </div>
+      <div class="field">
+        <label>MH₂ — Acide malique actuel (g/L)</label>
+        <input type="number" id="pred-malique" placeholder="2.5" step="0.1">
+      </div>
+      <div class="field">
+        <label>TH₂ — Acide tartrique actuel (g/L)</label>
+        <input type="number" id="pred-tartrique" placeholder="5.0" step="0.1">
+      </div>
+      <div class="field">
+        <label>Masse des baies (g / échantillon)</label>
+        <input type="number" id="pred-mb" placeholder="165" step="0.5">
+        <span class="unit">Même unité que l'analyse Glories</span>
+      </div>
+      <div class="field">
+        <label>Aph 1 — Anthocyanes pH 1 (mg/L)</label>
+        <input type="number" id="pred-aph1" placeholder="790" step="1">
+        <span class="unit">Supposée stable sur 7 j — requis pour projeter EA%</span>
+      </div>
+      <div class="field">
+        <label>DO 280 actuel (pH 3,5)</label>
+        <input type="number" id="pred-do280" placeholder="56.9" step="0.1">
+        <span class="unit">Absorbance (optionnel — non utilisé dans la projection)</span>
+      </div>
+    </div>
+
+    <h3>Météo prévue (7 prochains jours)</h3>
+
+    <button class="btn-meteo" id="btn-meteo-auto" onclick="recupererMeteoAuto()">
+      🌤 Récupérer la météo automatiquement
+    </button>
+    <div class="meteo-status" id="meteo-status"></div>
+
+    <div class="info-box" style="margin-bottom:12px;">
+      La météo est récupérée automatiquement via
+      <a href="https://open-meteo.com" target="_blank" rel="noopener" style="color:#1A6B9F;font-weight:600;">Open-Meteo</a>
+      (modèle AROME — Météo-France) selon la commune de la parcelle.
+      Pour vérifier les données brutes :
+      <a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener" style="color:#1A6B9F;">documentation API</a>
+      · <a href="https://meteofrance.com" target="_blank" rel="noopener" style="color:#1A6B9F;">Météo-France</a>.
+      Vous pouvez aussi ajuster les valeurs manuellement ci-dessous.
+    </div>
+    <div id="meteo-inputs"></div>
+
+    <button class="btn secondary" onclick="chargerDemosPrediction()" style="margin-bottom:10px;font-size:0.85em;padding:10px 16px;">
+      🧪 Charger données test (Demoiselles 1 — 20/08/2025)
+    </button>
+    <button class="btn" onclick="calculerPrediction()">🔮 Calculer les prédictions J+1 → J+7</button>
+  </div>
+
+  <div id="resultat-prediction"></div>
+</div>
+
+<!-- PAGE CRITÈRES -->
+<div class="page" id="page-criteres">
+  <div class="card">
+    <h2>⚙️ Critères de maturité par appellation</h2>
+    <p style="font-size:0.85em;color:#888;margin-bottom:14px;">
+      Chaque appellation a ses propres seuils. Les nouvelles appellations héritent des critères "Défaut".
+    </p>
+    <div id="appel-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid var(--or-clair);"></div>
+    <div id="criteres-form-container"></div>
+    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+      <button class="btn" onclick="sauvegarderCriteres()" style="flex:1;">💾 Enregistrer pour <span id="btn-appel-label">Défaut</span></button>
+      <button class="btn secondary" id="btn-copier-defaut" onclick="copierDepuisDefaut()" style="flex:0 0 auto;display:none;font-size:0.85em;">📋 Copier depuis Défaut</button>
+      <button class="btn secondary" id="btn-suppr-appel" onclick="supprimerAppellation()" style="flex:0 0 auto;color:var(--rouge);font-size:0.85em;display:none;">🗑 Supprimer</button>
+    </div>
+    <div id="criteres-saved" style="text-align:center;color:var(--vert);font-weight:600;font-size:0.9em;margin-top:8px;display:none;">✓ Critères enregistrés</div>
+  </div>
+
+  <div class="card">
+    <h2>📖 À propos du modèle</h2>
+    <p style="font-size:0.85em;line-height:1.7;color:#555;">
+      L'OAD Vendange combine deux approches complémentaires :
+    </p>
+    <br>
+    <p style="font-size:0.85em;line-height:1.7;color:#555;">
+      <strong>Module Décision</strong> : Évaluation multicritère basée sur vos analyses du jour versus vos seuils personnels. L'IMP (Ma/Mp×100) et la maturité des pépins (Glories) sont les indicateurs phénoliques clés pour Pinot Noir en Bourgogne.
+    </p>
+    <br>
+    <p style="font-size:0.85em;line-height:1.7;color:#555;">
+      <strong>Module Prédiction</strong> : Modèle GSR (Grapevine Sugar Ripeness) de Parker et al. (2020) — température de base Tb = 0°C. L'évolution du ratio S/AT est modélisée linéairement en fonction des degrés-jours cumulés post-véraison (van Leeuwen et al., 2023).
+    </p>
+    <br>
+    <p style="font-size:0.78em;color:#AAA;">
+      Références : Parker et al. (2020), Agricultural and Forest Meteorology — van Leeuwen et al. (2023), OENO One
+    </p>
+  </div>
+</div>
+
+</main>
+
+<!-- MODALE ANALYSE COMPLÈTE -->
+<div id="analyse-modal" onclick="if(event.target===this)fermerModal()">
+  <div class="modal-box">
+    <div class="modal-header" id="modal-header">
+      <div>
+        <h2 id="modal-titre">—</h2>
+        <div class="sub" id="modal-sous-titre">—</div>
+      </div>
+      <button class="modal-close" onclick="fermerModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ========================
+// ÉTAT DE L'APPLICATION
+// ========================
+const DEFAULT_CRITERES = {
+  ph_min: 2.90,       ph_cible: 3.40,       ph_max: 3.55,
+  at_min: 4.0,        at_cible: 5.0,        at_max: 8.0,
+  av_min: 0.05,       av_cible: 0.20,       av_max: 0.40,
+  sucre_min: 160,     sucre_cible: 190,     sucre_max: 230,
+  malique_min: 1.0,   malique_cible: 2.0,   malique_max: 5.0,
+  tartrique_min: 4.0, tartrique_cible: 5.0, tartrique_max: 8.0,
+  gluconique_min: 0,  gluconique_cible: 15, gluconique_max: 50,
+  tavp_min: 11.0,     tavp_cible: 13.0,     tavp_max: 14.0,
+  fer_min: 0,         fer_cible: 5.0,       fer_max: 8.0,
+  cu_min: 0,          cu_cible: 0.3,        cu_max: 1.0,
+  n_assim_min: 100,   n_assim_cible: 140,   n_assim_max: 300,
+  mp_min: 30,         mp_cible: 45,         mp_max: 100,
+  ea_min: 0,          ea_cible: 40,         ea_max: 60,
+  aph35_min: 350,     aph35_cible: 550,     aph35_max: 2000,
+  bj_min: 1.30,       bj_cible: 1.50,       bj_max: 3.0,
+};
+
+// ========================
+// FIREBASE / FIRESTORE
+// ========================
+const firebaseConfig = {
+  apiKey:            "AIzaSyDsyJrDjaU--2LFdLpGsPVyvF81ilMQkdM",
+  authDomain:        "oad-vendange.firebaseapp.com",
+  projectId:         "oad-vendange",
+  storageBucket:     "oad-vendange.firebasestorage.app",
+  messagingSenderId: "508720223755",
+  appId:             "1:508720223755:web:5979caccbd4ae2f9da590e",
+  measurementId:     "G-7ZYQFGVYLM"
+};
+firebase.initializeApp(firebaseConfig);
+const db     = firebase.firestore();
+const OAD_DOC = db.collection('oad').doc('shared');
+
+let _syncListener = null; // référence au listener onSnapshot
+
+function demarrerSync() {
+  if (_syncListener) return; // déjà démarré
+  // Indicateur de chargement discret
+  const nav = document.querySelector('nav');
+  if (nav) nav.style.opacity = '0.5';
+
+  _syncListener = OAD_DOC.onSnapshot((doc) => {
+    if (doc.exists) {
+      const data = doc.data();
+      state.parcelles = data.parcelles || [];
+      state.criteres  = data.criteres  || { 'Défaut': { ...DEFAULT_CRITERES } };
+      state.analyses  = data.analyses  || {};
+    }
+    // Restaurer UI et re-rendre
+    if (nav) nav.style.opacity = '1';
+    renderParcelles();
+    mettreAJourIndices();
+  }, (err) => {
+    console.error('Firestore sync error:', err);
+    if (nav) nav.style.opacity = '1';
+  });
+}
+
+function initCriteres() {
+  return { 'Défaut': { ...DEFAULT_CRITERES } };
+}
+
+let state = {
+  parcelles: [],
+  criteres:  initCriteres(),
+  analyses:  {}
+};
+let openHistoriqueIdx = null; // index de la parcelle dont l'historique est ouvert
+
+let currentAppelTab = 'Défaut';
+
+// ========================
+// NAVIGATION
+// ========================
+function showPage(btn, id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (id === 'decision' || id === 'prediction') mettreAJourSelectParcelles();
+  if (id === 'criteres') chargerCriteres();
+  if (id === 'prediction') { genererInputsMeteo(); bindPredParcelle(); }
+  if (id === 'parcelles') renderParcelles();
+}
+
+// ========================
+// PARCELLES
+// ========================
+async function ajouterParcelle() {
+  const nom  = document.getElementById('parc-nom').value.trim();
+  const cp   = document.getElementById('parc-cp').value.trim();
+  const lieu = document.getElementById('parc-lieu').value.trim();
+  const latManuel = parseFloat(document.getElementById('parc-lat').value);
+  const lonManuel = parseFloat(document.getElementById('parc-lon').value);
+  if (!nom) { alert('Veuillez saisir un nom de parcelle.'); return; }
+
+  const appellation = document.getElementById('parc-appellation').value.trim();
+  const parcelle = {
+    id: Date.now(),
+    nom, cp, lieu, appellation,
+    cepage: document.getElementById('parc-cepage').value,
+    surface: document.getElementById('parc-surface').value || '—',
+    lat: null, lon: null
+  };
+
+  // Priorité 1 : coordonnées saisies manuellement
+  if (!isNaN(latManuel) && !isNaN(lonManuel)) {
+    parcelle.lat = latManuel;
+    parcelle.lon = lonManuel;
+  }
+  // Priorité 2 : géocodage automatique (fonctionne si connecté au réseau depuis un serveur)
+  else if (cp || lieu) {
+    const btn = document.querySelector('.btn[onclick="ajouterParcelle()"]');
+    btn.textContent = '⏳ Géolocalisation…'; btn.disabled = true;
+    const coords = await geocoderCommune(cp, lieu);
+    btn.textContent = '+ Ajouter la parcelle'; btn.disabled = false;
+    if (coords) {
+      parcelle.lat = coords.lat;
+      parcelle.lon = coords.lon;
+      if (!lieu && coords.nom) parcelle.lieu = coords.nom;
+    }
+  }
+
+  state.parcelles.push(parcelle);
+  sauvegarder();
+  document.getElementById('parc-nom').value = '';
+  document.getElementById('parc-cp').value = '';
+  document.getElementById('parc-appellation').value = '';
+  document.getElementById('parc-lieu').value = '';
+  document.getElementById('parc-surface').value = '';
+  document.getElementById('parc-lat').value = '';
+  document.getElementById('parc-lon').value = '';
+  renderParcelles();
+}
+
+function renderParcelles() {
+  const el = document.getElementById('parcelle-list');
+  if (state.parcelles.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="icone">🗺️</div>Aucune parcelle enregistrée.<br>Ajoutez votre première parcelle ci-dessous.</div>';
+    return;
+  }
+  el.innerHTML = state.parcelles.map((p, i) => {
+    const nb = (state.analyses[p.nom] || []).length;
+    const derniere = nb > 0
+      ? (state.analyses[p.nom].slice().sort((a,b)=>b.date.localeCompare(a.date))[0])
+      : null;
+    const derniereLabel = derniere
+      ? `<span class="coord-badge" style="background:#E8F4FD;color:#1565C0;">📋 Dernier contrôle : ${new Date(derniere.date+'T12:00:00').toLocaleDateString('fr-FR')}</span>`
+      : '';
+    return `
+    <div class="parcelle-item" style="flex-direction:column;align-items:stretch;cursor:default;padding-bottom:${nb>0?'10':'14'}px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div class="nom">🍇 ${p.nom}</div>
+          <div class="details">${p.cepage} · ${p.lieu || '—'} · ${p.surface} ha</div>
+          ${p.appellation ? `<span class="coord-badge" style="background:#F0E6FF;color:#6A0DAD;">🏷 ${p.appellation}</span>` : ''}
+          ${p.cp ? `<span class="coord-badge" style="background:#E8F4FD;color:#1565C0;">📮 ${p.cp}</span>` : ''}
+          ${p.lat
+            ? `<span class="coord-badge">📡 ${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}</span>`
+            : p.cp
+              ? `<span class="coord-badge" style="background:#FFF3CD;color:#856404;">⚠️ Géolocalisation échouée</span>`
+              : `<span class="coord-badge" style="background:#FFF3CD;color:#856404;">⚠️ Ajoutez un CP pour la météo</span>`
+          }
+          ${derniereLabel}
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;margin-left:8px;">
+          <button id="btn-histo-${i}" class="btn-histo" onclick="toggleHistorique(${i})">
+            📋 ${nb > 0 ? nb + ' analyse' + (nb > 1 ? 's' : '') : 'Historique'}
+          </button>
+          <button onclick="supprimerParcelle(${i})" style="background:none;border:none;cursor:pointer;font-size:1.2em;color:#CCC;">🗑️</button>
+        </div>
+      </div>
+      <div id="histo-panel-${i}" class="histo-panel"></div>
+    </div>`;
+  }).join('');
+}
+
+function supprimerParcelle(i) {
+  if (!confirm('Supprimer cette parcelle ?')) return;
+  state.parcelles.splice(i, 1);
+  sauvegarder();
+  openHistoriqueIdx = null;
+  renderParcelles();
+}
+
+function toggleHistorique(idx) {
+  const panel = document.getElementById('histo-panel-' + idx);
+  const btn   = document.getElementById('btn-histo-'   + idx);
+  if (!panel) return;
+
+  const isOpen = panel.style.display === 'block';
+
+  // Fermer le panneau précédemment ouvert
+  if (openHistoriqueIdx !== null && openHistoriqueIdx !== idx) {
+    const prev = document.getElementById('histo-panel-' + openHistoriqueIdx);
+    const prevBtn = document.getElementById('btn-histo-' + openHistoriqueIdx);
+    if (prev) prev.style.display = 'none';
+    if (prevBtn) prevBtn.classList.remove('open');
+  }
+
+  if (isOpen) {
+    panel.style.display = 'none';
+    if (btn) btn.classList.remove('open');
+    openHistoriqueIdx = null;
+  } else {
+    panel.style.display = 'block';
+    panel.innerHTML = renderHistorique(idx);
+    if (btn) btn.classList.add('open');
+    openHistoriqueIdx = idx;
+  }
+}
+
+function renderHistorique(idx) {
+  const p = state.parcelles[idx];
+  if (!p) return '';
+  const analyses = (state.analyses[p.nom] || [])
+    .slice()
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  if (analyses.length === 0) {
+    return `<div style="text-align:center;color:#BBB;padding:14px;font-size:0.87em;">
+      Aucune analyse enregistrée pour cette parcelle.<br>
+      <span style="font-size:0.9em;">Lancez une analyse depuis l'onglet <strong>✅ Décision</strong> — elle sera sauvegardée automatiquement.</span>
+    </div>`;
+  }
+
+  const fmtN = (v, d) => (v !== null && v !== undefined && !isNaN(v)) ? parseFloat(v).toFixed(d) : '—';
+
+  const verdictBadge = cls => {
+    if (cls === 'pret')    return `<span style="padding:2px 7px;border-radius:5px;font-size:0.75em;font-weight:700;background:#2D6A4F;color:#fff;">✅ Prêt</span>`;
+    if (cls === 'attente') return `<span style="padding:2px 7px;border-radius:5px;font-size:0.75em;font-weight:700;background:#E76F51;color:#fff;">⏳ En cours</span>`;
+    return                        `<span style="padding:2px 7px;border-radius:5px;font-size:0.75em;font-weight:700;background:#F59F00;color:#fff;">⚠️ Trop tôt</span>`;
+  };
+
+  const rows = analyses.map((a, anaIdx) => {
+    const dateLabel = a.date ? new Date(a.date + 'T12:00:00').toLocaleDateString('fr-FR') : '—';
+    return `<tr class="histo-row-click" onclick="openAnalyseModal(${idx}, ${anaIdx})" title="Cliquer pour voir l'analyse complète">
+      <td style="padding:7px 8px;font-weight:600;white-space:nowrap;">${dateLabel}</td>
+      <td style="padding:7px 8px;text-align:center;">${fmtN(a.tavp, 1)}</td>
+      <td style="padding:7px 8px;text-align:center;">${fmtN(a.at, 1)}</td>
+      <td style="padding:7px 8px;text-align:center;">${fmtN(a.ph, 2)}</td>
+      <td style="padding:7px 8px;text-align:center;">${fmtN(a.malique, 1)}</td>
+      <td style="padding:7px 8px;text-align:center;">${a.mpPct !== null && a.mpPct !== undefined ? fmtN(a.mpPct, 1)+'%' : '—'}</td>
+      <td style="padding:7px 8px;text-align:center;">${a.ea !== null && a.ea !== undefined ? fmtN(a.ea, 1)+'%' : '—'}</td>
+      <td style="padding:7px 8px;text-align:center;">${a.bj !== null && a.bj !== undefined ? fmtN(a.bj, 2) : '—'}</td>
+      <td style="padding:7px 8px;text-align:center;">${verdictBadge(a.verdictClass)}</td>
+      <td style="padding:7px 8px;text-align:center;" onclick="event.stopPropagation()">
+        <button onclick="supprimerAnalyse(${idx}, ${anaIdx})" title="Supprimer"
+          style="background:none;border:none;cursor:pointer;color:#DDD;font-size:1em;line-height:1;">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  return `
+    <div style="background:#FAFAF8;border-radius:8px;padding:12px;border:1px solid var(--or-clair);">
+      <div style="font-size:0.82em;font-weight:700;color:var(--rouge);margin-bottom:8px;">
+        📋 Historique des contrôles — ${p.nom}
+        <span style="font-weight:400;color:#888;">(${analyses.length} analyse${analyses.length>1?'s':''})</span>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="histo-table">
+          <thead>
+            <tr>
+              <th style="text-align:left;">Date</th>
+              <th>TAVP<br>%vol</th>
+              <th>AT<br>g/L</th>
+              <th>pH</th>
+              <th>MH₂<br>g/L</th>
+              <th>MP%</th>
+              <th>EA%</th>
+              <th>B/J</th>
+              <th>Verdict</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function supprimerAnalyse(parcIdx, anaIdx) {
+  const nom = state.parcelles[parcIdx]?.nom;
+  if (!nom || !state.analyses[nom]) return;
+  if (!confirm('Supprimer cette analyse ?')) return;
+  // Tri identique à renderHistorique pour retrouver le bon index
+  const sorted = state.analyses[nom].slice().sort((a, b) => b.date.localeCompare(a.date));
+  const entry  = sorted[anaIdx];
+  if (!entry) return;
+  state.analyses[nom] = state.analyses[nom].filter(
+    a => !(a.date === entry.date && a.tavp === entry.tavp && a.at === entry.at)
+  );
+  sauvegarder();
+  // Rafraîchir le panneau ouvert
+  const panel = document.getElementById('histo-panel-' + parcIdx);
+  if (panel && panel.style.display === 'block') {
+    panel.innerHTML = renderHistorique(parcIdx);
+  }
+  // Mettre à jour le compteur sur le bouton
+  const btn = document.getElementById('btn-histo-' + parcIdx);
+  const nb  = (state.analyses[nom] || []).length;
+  if (btn) btn.textContent = `📋 ${nb > 0 ? nb + ' analyse' + (nb > 1 ? 's' : '') : 'Historique'}`;
+}
+
+function bindPredParcelle() {
+  const sel = document.getElementById('pred-parcelle');
+  if (sel) {
+    sel.onchange = () => {
+      // Reset météo status
+      const status = document.getElementById('meteo-status');
+      if (status) { status.className = 'meteo-status'; status.style.display = 'none'; }
+      const btn = document.getElementById('btn-meteo-auto');
+      if (btn) btn.innerHTML = '🌤 Récupérer la météo automatiquement';
+      // Réinitialiser les champs météo
+      for (let i = 0; i < 7; i++) {
+        const tm = document.getElementById('tmax-' + i);
+        const tn = document.getElementById('tmin-' + i);
+        if (tm) tm.value = '';
+        if (tn) tn.value = '';
+      }
+      if (document.getElementById('gdd-total')) document.getElementById('gdd-total').textContent = '— °C·j';
+
+      // Auto-remplir les champs Glories depuis la dernière analyse de la parcelle
+      // Aph1 est propre à chaque parcelle — elle doit venir de l'historique, pas être saisie manuellement
+      const nomP = sel.value;
+      const analyses = (state.analyses[nomP] || []).slice().sort((a, b) => a.date < b.date ? 1 : -1);
+      const derniere = analyses[0]; // la plus récente
+      if (derniere) {
+        const set = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
+        set('pred-sucre',    derniere.tavp   != null ? derniere.tavp.toFixed(2)    : null);
+        set('pred-at',       derniere.at     != null ? derniere.at.toFixed(2)      : null);
+        set('pred-malique',  derniere.malique!= null ? derniere.malique.toFixed(2) : null);
+        set('pred-tartrique',derniere.tartrique!=null? derniere.tartrique.toFixed(2): null);
+        set('pred-mb',       derniere.mBaies != null ? derniere.mBaies.toFixed(1)  : null);
+        set('pred-aph1',     derniere.aph1   != null ? Math.round(derniere.aph1)   : null);
+        set('pred-do280',    derniere.do280  != null ? derniere.do280.toFixed(1)   : null);
+        // Indicateur visuel
+        const infoEl = document.getElementById('pred-info-derniere-analyse');
+        if (infoEl) {
+          infoEl.style.display = 'block';
+          infoEl.innerHTML = `📋 Données pré-remplies depuis l'analyse du <strong>${derniere.date}</strong> — vérifiez avant de calculer.`;
+        }
+      } else {
+        const infoEl = document.getElementById('pred-info-derniere-analyse');
+        if (infoEl) { infoEl.style.display = 'none'; infoEl.innerHTML = ''; }
+      }
+    };
+  }
+}
+
+function mettreAJourSelectParcelles() {
+  ['dec-parcelle', 'pred-parcelle'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Sélectionner —</option>' +
+      state.parcelles.map(p => {
+        const app = p.appellation ? ` — ${p.appellation}` : '';
+        return `<option value="${p.nom}">${p.nom} (${p.cepage}${app})</option>`;
+      }).join('');
+    sel.value = current;
+  });
+  // Recalculer les indices avec les critères de la bonne appellation
+  const decSel = document.getElementById('dec-parcelle');
+  if (decSel) decSel.onchange = () => mettreAJourIndices();
+}
+
+// ========================
+// CALCUL INDICES EN DIRECT
+// ========================
+const CHAMPS_INDICES = ['dec-aph35','dec-aph1','dec-do280','dec-sucre','dec-at','dec-n-ammo','dec-n-amine','dec-masse-baies','dec-masse-jus'];
+function bindIndices() {
+  CHAMPS_INDICES.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', mettreAJourIndices);
+  });
+}
+
+function setIndice(id, valeur, texte, seuil1, seuil2, inverse) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = texte;
+  if (valeur == null) { el.style.color = '#CCC'; return; }
+  const ok = inverse ? valeur <= seuil1 : valeur >= seuil1;
+  const cible = inverse ? valeur <= seuil2 : valeur >= seuil2;
+  el.style.color = cible ? 'var(--vert)' : ok ? 'var(--orange)' : 'var(--rouge)';
+}
+
+function mettreAJourIndices() {
+  const aph35  = parseFloat(document.getElementById('dec-aph35')?.value);
+  const aph1   = parseFloat(document.getElementById('dec-aph1')?.value);
+  const do280  = parseFloat(document.getElementById('dec-do280')?.value);
+  const sucre  = parseFloat(document.getElementById('dec-sucre')?.value);
+  const at     = parseFloat(document.getElementById('dec-at')?.value);
+  const nAmmo  = parseFloat(document.getElementById('dec-n-ammo')?.value);
+  const nAmine = parseFloat(document.getElementById('dec-n-amine')?.value);
+  const mBaies = parseFloat(document.getElementById('dec-masse-baies')?.value);
+  const mJus   = parseFloat(document.getElementById('dec-masse-jus')?.value);
+  const c = getCriteresActifs();
+
+  // MP% = ((DO280 - (Aph3.5/1000)*40) / DO280) * 100  [formule Glories exacte]
+  if (do280 && aph35) {
+    const mp = ((do280 - (aph35 / 1000) * 40) / do280) * 100;
+    setIndice('val-imp', mp, mp.toFixed(1) + ' %', c.mp_min, c.mp_cible, false);
+  } else setIndice('val-imp', null, '—');
+
+  // EA% = ((Aph1 - Aph3.5) / Aph1) * 100  [formule Glories exacte — plus EA est bas, mieux c'est]
+  if (aph1 && aph35) {
+    const ea = ((aph1 - aph35) / aph1) * 100;
+    setIndice('val-ea', ea, ea.toFixed(1) + ' %', c.ea_max, c.ea_cible, true);
+  } else setIndice('val-ea', null, '—');
+
+  // Rapport baies/jus
+  if (mBaies && mJus) {
+    const rbj = (mBaies / mJus).toFixed(2);
+    document.getElementById('val-rapport-bj').textContent = rbj;
+    document.getElementById('val-rapport-bj').style.color = 'var(--gris)';
+  } else setIndice('val-rapport-bj', null, '—');
+
+  // Ratio Sucre/AT
+  if (sucre && at) {
+    const sat = (sucre / at).toFixed(1);
+    document.getElementById('val-sat').textContent = sat;
+    document.getElementById('val-sat').style.color = 'var(--gris)';
+  } else setIndice('val-sat', null, '—');
+
+  // N assimilable
+  if (nAmmo && nAmine) {
+    const nA = nAmmo + nAmine;
+    setIndice('val-n-assim', nA, Math.round(nA) + ' mg/L', 140, 200, false);
+  } else setIndice('val-n-assim', null, '—');
+
+}
+
+// ========================
+// DÉCISION
+// ========================
+
+// Évalue un critère dans l'espace [min, cible, max]
+// dir:'up'   → valeur haute est mieux (AT, sucres, MH₂, MP%, B/J…)
+// dir:'down' → valeur basse est mieux (pH, AV, TAVP, EA%…)
+function evalP(val, cMin, cCible, cMax, dir) {
+  const inRange  = val >= cMin && val <= cMax;
+  const atCible  = dir === 'up'
+    ? (val >= cCible && val <= cMax)
+    : (val <= cCible && val >= cMin);
+  const range    = cMax - cMin || 1;
+  const rangePct = Math.min(100, Math.max(0, (val - cMin) / range * 100));
+  const ciblePct = Math.min(98, Math.max(2, (cCible - cMin) / range * 100));
+  return { ok: inRange, cible: atCible, rangePct, ciblePct,
+           minVal: cMin, maxVal: cMax, cibleVal: cCible,
+           seuil: `≥ ${cMin} — ≤ ${cMax}` };
+}
+
+function calculerDecision() {
+  const ph       = parseFloat(document.getElementById('dec-ph').value);
+  const at       = parseFloat(document.getElementById('dec-at').value);
+  const av       = parseFloat(document.getElementById('dec-av').value);
+  const sucre    = parseFloat(document.getElementById('dec-sucre').value);
+  const tavp     = parseFloat(document.getElementById('dec-tavp').value);
+  const malique  = parseFloat(document.getElementById('dec-malique').value);
+  const tartrique= parseFloat(document.getElementById('dec-tartrique').value);
+  const gluconique=parseFloat(document.getElementById('dec-gluconique').value);
+  const nAmmo    = parseFloat(document.getElementById('dec-n-ammo').value);
+  const nAmine   = parseFloat(document.getElementById('dec-n-amine').value);
+  const fer      = parseFloat(document.getElementById('dec-fer').value);
+  const cu       = parseFloat(document.getElementById('dec-cu').value);
+  const do280    = parseFloat(document.getElementById('dec-do280').value);
+  const aph35    = parseFloat(document.getElementById('dec-aph35').value);
+  const aph1     = parseFloat(document.getElementById('dec-aph1').value);
+  const mBaies   = parseFloat(document.getElementById('dec-masse-baies').value);
+  const mJus     = parseFloat(document.getElementById('dec-masse-jus').value);
+  const parcelle = document.getElementById('dec-parcelle').value;
+  const date     = document.getElementById('dec-date').value;
+
+  if (!sucre && !at && !aph1) { alert('Veuillez saisir au moins quelques analyses.'); return; }
+
+  const c = getCriteresActifs();
+  const nomApp = (() => { const p = state.parcelles.find(x=>x.nom===parcelle); return p?.appellation || 'Défaut'; })();
+  const params = [];
+
+  // ---- PHYSICO-CHIMIE ----
+  if (ph) {
+    const e = evalP(ph, c.ph_min, c.ph_cible, c.ph_max, 'down');
+    params.push({ label: 'pH', valeur: ph.toFixed(2), ...e, cat: '🔬' });
+  }
+  if (at) {
+    const e = evalP(at, c.at_min, c.at_cible, c.at_max, 'up');
+    params.push({ label: 'AT (g/L H₂SO₄)', valeur: at + ' g/L H₂SO₄', ...e, cat: '🔬' });
+  }
+  if (av) {
+    const e = evalP(av, c.av_min, c.av_cible, c.av_max, 'down');
+    params.push({ label: 'AV (g/L)', valeur: av + ' g/L', ...e, cat: '🔬' });
+  }
+  if (sucre) {
+    const e = evalP(sucre, c.sucre_min, c.sucre_cible, c.sucre_max, 'up');
+    params.push({ label: 'Sucres (g/L)', valeur: sucre + ' g/L', ...e, cat: '🔬' });
+  }
+  if (malique) {
+    const e = evalP(malique, c.malique_min, c.malique_cible, c.malique_max, 'up');
+    params.push({ label: 'MH₂ — Acide malique (g/L)', valeur: malique + ' g/L', ...e, cat: '🔬' });
+  }
+  if (tartrique) {
+    const e = evalP(tartrique, c.tartrique_min, c.tartrique_cible, c.tartrique_max, 'up');
+    params.push({ label: 'TH₂ — Acide tartrique (g/L)', valeur: tartrique + ' g/L', ...e, cat: '🔬' });
+  }
+  if (gluconique) {
+    const e = evalP(gluconique, c.gluconique_min, c.gluconique_cible, c.gluconique_max, 'down');
+    params.push({ label: 'Gluconique (mg/L)', valeur: gluconique + ' mg/L', ...e, cat: '🔬' });
+  }
+  if (tavp) {
+    const e = evalP(tavp, c.tavp_min, c.tavp_cible, c.tavp_max, 'down');
+    params.push({ label: 'TAVP (%vol)', valeur: tavp.toFixed(1) + ' %vol', ...e, cat: '🔬' });
+  }
+
+  // ---- MÉTAUX ----
+  if (fer) {
+    const e = evalP(fer, c.fer_min, c.fer_cible, c.fer_max, 'down');
+    params.push({ label: 'Fer (mg/L)', valeur: fer + ' mg/L', ...e, cat: '⚗️' });
+  }
+  if (cu) {
+    const e = evalP(cu, c.cu_min, c.cu_cible, c.cu_max, 'down');
+    params.push({ label: 'Cuivre — Cu (mg/L)', valeur: cu + ' mg/L', ...e, cat: '⚗️' });
+  }
+
+  // ---- AZOTE ----
+  if (nAmmo && nAmine) {
+    const nA = nAmmo + nAmine;
+    const e = evalP(nA, c.n_assim_min, c.n_assim_cible, c.n_assim_max, 'up');
+    params.push({ label: 'N assimilable (mg/L)', valeur: Math.round(nA) + ' mg/L', ...e, cat: '⚗️' });
+  }
+
+  // ---- GLORIES (phénolique) ----
+  if (do280 && aph35) {
+    const mpPct = ((do280 - (aph35/1000)*40) / do280) * 100;
+    const e = evalP(mpPct, c.mp_min, c.mp_cible, c.mp_max, 'up');
+    params.push({ label: 'MP% — Maturité phénolique', valeur: mpPct.toFixed(1) + ' %', ...e, pheno: true, cat: '🧪' });
+  }
+  if (aph1 && aph35) {
+    const ea = ((aph1 - aph35) / aph1) * 100;
+    const e = evalP(ea, c.ea_min, c.ea_cible, c.ea_max, 'down');
+    params.push({ label: 'EA% — Extractibilité anthocyanes', valeur: ea.toFixed(1) + ' %', ...e, pheno: true, cat: '🧪' });
+  }
+  if (mBaies && mJus) {
+    const bj = mBaies / mJus;
+    const e = evalP(bj, c.bj_min, c.bj_cible, c.bj_max, 'up');
+    params.push({ label: 'B/J — Baie / Jus', valeur: bj.toFixed(2), ...e, pheno: true, cat: '🧪' });
+  }
+
+  const nbOk    = params.filter(p => p.ok).length;
+  const nbCible = params.filter(p => p.cible).length;
+  const tousOk  = params.length > 0 && params.every(p => p.ok);
+  const pctCible = params.length > 0 ? nbCible / params.length : 0;
+  const nbHorsPlage = params.filter(p => !p.ok).length;
+
+  let verdictClass, verdictIcone, verdictTitre, verdictSous;
+  if (tousOk && pctCible >= 0.7) {
+    verdictClass = 'pret'; verdictIcone = '✅';
+    verdictTitre = 'PRÊT À VENDANGER';
+    verdictSous  = 'Tous les critères sont dans leur plage et la majorité atteint la cible.';
+  } else if (tousOk) {
+    verdictClass = 'attente'; verdictIcone = '⏳';
+    verdictTitre = 'DANS LES NORMES — MATURITÉ EN COURS';
+    verdictSous  = 'Tous les critères sont dans leur plage, mais les cibles ne sont pas encore atteintes.';
+  } else {
+    verdictClass = 'early'; verdictIcone = '⚠️';
+    verdictTitre = 'TROP TÔT — HORS PLAGE';
+    verdictSous  = `${nbHorsPlage} critère${nbHorsPlage > 1 ? 's' : ''} hors plage [min–max]. Continuez le suivi.`;
+  }
+
+  // ---- AUTO-ENREGISTREMENT dans l'historique ----
+  if (parcelle && date) {
+    if (!state.analyses[parcelle]) state.analyses[parcelle] = [];
+    const mpPct = (do280 && aph35) ? ((do280 - (aph35/1000)*40) / do280) * 100 : null;
+    const ea    = (aph1 && aph35)  ? ((aph1 - aph35) / aph1) * 100            : null;
+    const bj    = (mBaies && mJus) ? mBaies / mJus                             : null;
+    const densite = parseFloat(document.getElementById('dec-densite')?.value);
+    const entry = {
+      date, appellation: nomApp,
+      // Valeurs brutes physico-chimiques
+      ph:         isNaN(ph)         ? null : ph,
+      at:         isNaN(at)         ? null : at,
+      av:         isNaN(av)         ? null : av,
+      sucre:      isNaN(sucre)      ? null : sucre,
+      tavp:       isNaN(tavp)       ? null : tavp,
+      densite:    isNaN(densite)    ? null : densite,
+      malique:    isNaN(malique)    ? null : malique,
+      tartrique:  isNaN(tartrique)  ? null : tartrique,
+      gluconique: isNaN(gluconique) ? null : gluconique,
+      // Azote & Métaux
+      nAmmo:  isNaN(nAmmo)  ? null : nAmmo,
+      nAmine: isNaN(nAmine) ? null : nAmine,
+      fer:    isNaN(fer)    ? null : fer,
+      cu:     isNaN(cu)     ? null : cu,
+      // Glories (valeurs brutes)
+      do280:  isNaN(do280)  ? null : do280,
+      aph35:  isNaN(aph35)  ? null : aph35,
+      aph1:   isNaN(aph1)   ? null : aph1,
+      mBaies: isNaN(mBaies) ? null : mBaies,
+      mJus:   isNaN(mJus)   ? null : mJus,
+      // Indices calculés
+      mpPct, ea, bj,
+      // Verdict
+      verdictClass, verdictTitre,
+      nbOk, nbTotal: params.length, nbCible
+    };
+    // Remplacer si même date (évite doublons lors de recalculs)
+    state.analyses[parcelle] = state.analyses[parcelle].filter(
+      e => e.date !== date
+    );
+    state.analyses[parcelle].push(entry);
+    sauvegarder();
+  }
+
+  const jaugesHTML = params.map(p => {
+    const fillColor = p.cible ? 'var(--vert)' : p.ok ? 'var(--orange)' : 'var(--rouge)';
+    const barBg     = p.ok ? '#E8E8E8' : 'rgba(183,28,28,0.10)';
+    const rangePct  = Math.min(100, Math.max(0, p.rangePct));
+    const ciblePct  = Math.min(98, Math.max(2, p.ciblePct));
+    const emoji     = p.cible ? '✅' : p.ok ? '🟡' : '❌';
+    return `
+      <div class="jauge-item">
+        <div class="jauge-label">
+          <span>${p.pheno ? '🧪 ' : '🔬 '}${p.label}</span>
+          <span>${p.valeur} ${emoji}</span>
+        </div>
+        <div class="jauge-bar" style="background:${barBg};">
+          <!-- Marqueur cible (ligne verte) -->
+          <div style="position:absolute;top:0;bottom:0;left:${ciblePct}%;width:2px;background:#2D6A4F;z-index:2;opacity:0.7;"></div>
+          <!-- Remplissage valeur -->
+          <div style="height:100%;width:${rangePct}%;background:${fillColor};border-radius:5px;position:relative;z-index:1;transition:width 0.5s;"></div>
+        </div>
+        <div style="font-size:0.72em;margin-top:3px;display:flex;justify-content:space-between;">
+          <span style="color:#4a90d9;">↳ min : ${p.minVal}</span>
+          <span style="color:#2D6A4F;font-weight:600;">▎cible : ${p.cibleVal}</span>
+          <span style="color:#c0392b;">max : ${p.maxVal} ↲</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const el = document.getElementById('resultat-decision');
+  el.innerHTML = `
+    <div class="card">
+      <h2>📊 Résultat — ${parcelle || 'Parcelle'} ${date ? '(' + new Date(date).toLocaleDateString('fr-FR') + ')' : ''}</h2>
+      <div style="font-size:0.78em;color:#999;margin-top:-10px;margin-bottom:10px;">Critères appliqués : <span style="color:#6A0DAD;font-weight:600;">🏷 ${nomApp}</span></div>
+      <div class="verdict ${verdictClass}">
+        <div class="icone">${verdictIcone}</div>
+        <div class="titre">${verdictTitre}</div>
+        <div class="sous-titre">${verdictSous}</div>
+      </div>
+      <div class="score-global">
+        <div class="score-cercle ${tousOk && pctCible>=0.7 ? 'vert' : tousOk ? 'orange' : 'rouge'}">
+          ${nbOk}<span style="font-size:0.45em">/${params.length}</span>
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:1em;">${nbOk} / ${params.length} critères dans leur plage</div>
+          <div class="score-label">${nbCible} / ${params.length} critères cibles atteints</div>
+          ${nbHorsPlage > 0 ? `<div style="font-size:0.82em;color:var(--rouge);margin-top:2px;">⚠️ ${nbHorsPlage} hors plage [min–max]</div>` : ''}
+        </div>
+      </div>
+      <div class="jauges" style="margin-top:14px;">
+        ${jaugesHTML}
+      </div>
+    </div>
+  `;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ========================
+// MÉTÉO INPUTS
+// ========================
+function genererInputsMeteo() {
+  const jours = ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'];
+  const today = new Date();
+  let html = '<div style="display:grid;gap:8px;">';
+  html += `
+    <div style="display:grid;grid-template-columns:80px 1fr 1fr 90px;gap:8px;align-items:center;">
+      <span style="font-size:0.75em;font-weight:700;color:#aaa;text-transform:uppercase;">Jour</span>
+      <span style="font-size:0.75em;font-weight:700;color:#aaa;text-transform:uppercase;text-align:center;">Tmax</span>
+      <span style="font-size:0.75em;font-weight:700;color:#aaa;text-transform:uppercase;text-align:center;">Tmin</span>
+      <span style="font-size:0.75em;font-weight:700;color:#4a90d9;text-transform:uppercase;text-align:center;">🌧 Pluie</span>
+    </div>
+  `;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today); d.setDate(today.getDate() + i + 1); // +1 : i=0 → J+1 (demain)
+    const label = i === 0 ? `Demain — J+1` : `${jours[d.getDay()]} — J+${i+1}`;
+    html += `
+      <div style="display:grid;grid-template-columns:80px 1fr 1fr 90px;gap:8px;align-items:center;">
+        <span style="font-size:0.85em;font-weight:600;color:var(--rouge);">${label}<br><small style="font-weight:400;color:#aaa;">${d.getDate()}/${d.getMonth()+1}</small></span>
+        <div class="field" style="margin:0;"><label style="font-size:0.75em;">Tmax (°C)</label><input type="number" id="tmax-${i}" placeholder="24" step="0.5" oninput="calculerGDD()"></div>
+        <div class="field" style="margin:0;"><label style="font-size:0.75em;">Tmin (°C)</label><input type="number" id="tmin-${i}" placeholder="14" step="0.5" oninput="calculerGDD()"></div>
+        <div class="field" style="margin:0;"><label style="font-size:0.75em;color:#4a90d9;">Pluie (mm)</label><input type="number" id="pluie-${i}" placeholder="0" step="1" min="0" style="border-color:#4a90d922;"></div>
+      </div>
+    `;
+  }
+  html += '</div>';
+  html += `
+    <div class="pred-card" style="margin-top:12px;">
+      <div style="font-size:0.82em;color:#888;font-weight:600;margin-bottom:6px;">DEGRÉS-JOURS CUMULÉS SUR 7 JOURS</div>
+      <div style="font-size:1.6em;font-weight:800;color:var(--rouge);" id="gdd-total">— °C·j</div>
+      <div style="font-size:0.75em;color:#999;margin-top:2px;">Σ [(Tmax + Tmin)/2 - 0] pour Tb = 0°C</div>
+    </div>
+  `;
+  document.getElementById('meteo-inputs').innerHTML = html;
+}
+
+function calculerGDD() {
+  let total = 0;
+  for (let i = 0; i < 7; i++) {
+    const tmax = parseFloat(document.getElementById('tmax-' + i)?.value);
+    const tmin = parseFloat(document.getElementById('tmin-' + i)?.value);
+    if (!isNaN(tmax) && !isNaN(tmin)) {
+      total += Math.max(0, (tmax + tmin) / 2);
+    }
+  }
+  document.getElementById('gdd-total').textContent = total.toFixed(1) + ' °C·j';
+  return total;
+}
+
+// ========================
+// PRÉDICTION
+// ========================
+function calculerPrediction() {
+  const tavp0     = parseFloat(document.getElementById('pred-sucre').value);
+  const at0       = parseFloat(document.getElementById('pred-at').value);
+  const malique0  = parseFloat(document.getElementById('pred-malique').value);
+  const tartrique0= parseFloat(document.getElementById('pred-tartrique').value);
+  const mb0       = parseFloat(document.getElementById('pred-mb').value);     // Masse baies (g)
+  const aph1_0    = parseFloat(document.getElementById('pred-aph1').value);   // Aph1 supposée stable
+  const do280_0   = parseFloat(document.getElementById('pred-do280').value);  // DO 280 (optionnel)
+  const parcelle  = document.getElementById('pred-parcelle').value;
+
+  if (!tavp0 || !at0) { alert('Veuillez saisir le TAVP et l\'acidité totale actuels.'); return; }
+
+  const { criteres: c, appellation: nomApp } = getCriteresParParcelle(parcelle);
+  const nomJours = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  const today = new Date();
+
+  // GDD et pluviométrie par jour + méteo HTML
+  const gddParJour   = [];
+  const pluieParJour = [];
+  let meteoHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const tmax  = parseFloat(document.getElementById('tmax-'  + i)?.value);
+    const tmin  = parseFloat(document.getElementById('tmin-'  + i)?.value);
+    const pluie = parseFloat(document.getElementById('pluie-' + i)?.value) || 0;
+    const gddJ = (!isNaN(tmax) && !isNaN(tmin)) ? Math.max(0, (tmax + tmin) / 2) : 0;
+    gddParJour.push(gddJ);
+    pluieParJour.push(pluie);
+    if (!isNaN(tmax) && !isNaN(tmin)) {
+      const d = new Date(today); d.setDate(today.getDate() + i + 1); // i=0 → J+1
+      const icone = pluie >= 10 ? '🌧' : pluie >= 3 ? '🌦' : tmax >= 28 ? '☀️' : tmax >= 22 ? '🌤' : tmax >= 16 ? '⛅' : '🌥';
+      const pluieLabel = pluie > 0 ? `<div class="gdd" style="color:#4a90d9;">💧 ${pluie.toFixed(0)} mm</div>` : '';
+      meteoHTML += `<div class="meteo-jour">
+        <div class="jour">J+${i+1} ${nomJours[d.getDay()]}</div>
+        <div class="icone">${icone}</div>
+        <div class="temp"><span class="tmax">${tmax}°</span> / <span class="tmin">${tmin}°</span></div>
+        <div class="gdd">+${gddJ.toFixed(1)} GDD</div>
+        ${pluieLabel}
+      </div>`;
+    }
+  }
+  const gddTotal   = gddParJour.reduce((a,b) => a+b, 0);
+  const pluieTotal = pluieParJour.reduce((a,b) => a+b, 0);
+
+  // =========================================================================
+  // MODÈLES D'ÉVOLUTION — SOURCES SCIENTIFIQUES UNIQUEMENT
+  // =========================================================================
+  // TAVP (+0.008 %vol/GDD·j, Tb = 0 °C) :
+  //   Accumulation de sucres après véraison. Coefficient issu des données de
+  //   la littérature générale (Coombe 1992 ; Ribéreau-Gayon et al. 2012,
+  //   Traité d'Œnologie vol.1). Plage Pinot Noir Bourgogne : 0.007–0.010
+  //   %vol/GDD·j (Tb=0°C). Valable sur courtes périodes (<10 j). Incertitude ±30%.
+  //
+  // MH₂ (−0.004 g/L/GDD·j, Tb = 0 °C) :
+  //   Dégradation de l'acide malique par respiration mitochondriale (cycle TCA).
+  //   Modèle linéaire valide en première approximation (Kliewer 1977 ; Sweetman
+  //   et al. 2009 Plant Physiol. Biochem.). Taux réel dépend de T° (Q10 ≈ 2 :
+  //   double si T > 30 °C). Incertitude ±40%.
+  //
+  // TH₂ (stable, 0 g/L/GDD·j) :
+  //   L'acide tartrique est synthétisé au stade herbacé et N'EST PAS dégradé
+  //   après véraison. Pas de modèle cinétique de dégradation connu.
+  //   (Coombe 1992 ; Ribéreau-Gayon et al. 2012).
+  //
+  // AT (dérivée de ΔMH₂) :
+  //   La baisse d'AT en cours de maturation est principalement liée à la perte
+  //   de MH₂. ΔAT ≈ 0.67 × ΔMH₂ (facteur d'équivalence molaire H₂SO₄/malique).
+  //   Si MH₂ non saisi, légère tendance indicative seulement (−0.002 g/L/GDD).
+  //
+  // MP% et B/J : AUCUN modèle cinétique publié ne lie ces paramètres Glories
+  //   aux degrés-jours. → PAS D'EXTRAPOLATION. Saisir à chaque prélèvement.
+  //
+  // Effets pluie : la littérature (van Leeuwen & Seguin 2006 ; Ojeda et al. 2002)
+  //   documente qualitativement la dilution des anthocyanes et des sucres, mais
+  //   sans coefficients quantitatifs validés → indicateur qualitatif uniquement.
+  // =========================================================================
+
+  // EA% J0 (état actuel) — même chaîne que les projections, sans correction pluie
+  const aph35_j0 = !isNaN(mb0) ? Math.max(0, -2.56 * mb0 + 1055) : null;
+  const ea_j0 = (aph35_j0 !== null && !isNaN(aph1_0) && aph1_0 > 0)
+    ? Math.max(0, Math.min(100, ((aph1_0 - aph35_j0) / aph1_0) * 100))
+    : null;
+
+  let gddCumul = 0;
+  const projections = [];
+  for (let j = 1; j <= 7; j++) {
+    gddCumul      += gddParJour[j-1];
+    const pluie    = pluieParJour[j-1];
+    const date     = new Date(today); date.setDate(today.getDate() + j);
+
+    // TAVP [Coombe 1992 ; Ribéreau-Gayon et al. 2012]
+    const tavp = tavp0 + gddCumul * 0.008;
+
+    // MH₂ [Kliewer 1977 ; Sweetman et al. 2009]
+    const malique = !isNaN(malique0) ? Math.max(0.3, malique0 - gddCumul * 0.004) : null;
+
+    // TH₂ — stable post-véraison [Coombe 1992]
+    const tartrique = !isNaN(tartrique0) ? tartrique0 : null;
+
+    // AT — dérivée de ΔMH₂ (ΔAT ≈ 0.67 × ΔMH₂) [Ribéreau-Gayon et al. 2012]
+    const at = malique !== null
+      ? Math.max(2.0, at0 - gddCumul * 0.004 * 0.67)
+      : Math.max(2.0, at0 - gddCumul * 0.002);   // tendance indicative si MH₂ absent
+
+    // -----------------------------------------------------------------------
+    // MASSE DES BAIES — correction pluviométrique (Ojeda et al. 2002, AJVE)
+    // Stress hydrique post-véraison S3 → baies à 85 % du poids témoin (−15 %)
+    // Symétrique : apport hydrique → gonflement osmotique → + MB → dilution.
+    // Ramos et al. (2020, Sci. Hortic.) : eau disponible en fin de maturation
+    //   ↑ poids baie, ↓ anthocyanes et polyphénols totaux.
+    // Coefficient retenu : + 0,15 % MB / mm de pluie cumulée (plafond + 15 %).
+    // Note : l'effet inverse (sécheresse → concentration) n'est pas modélisé
+    //   sur 7 jours faute de données de bilan hydrique du sol — MB stable sans pluie.
+    // -----------------------------------------------------------------------
+    const pluieCumul_j = pluieParJour.slice(0, j).reduce((a, b) => a + b, 0);
+    const deltaRain    = Math.min(0.15, pluieCumul_j * 0.0015); // coefficient Ojeda 2002
+    const mb = !isNaN(mb0) ? mb0 * (1 + deltaRain) : null;
+
+    // Aph3,5 via régression (MB corrigée pluie) — Bourgogne Pinot Noir, R²=0,48
+    //   Aph3,5 = −2,56 × MB + 1055
+    // Pluie → MB ↑ → Aph3,5 ↓ (dilution anthocyanes)
+    const aph35Proj = mb !== null ? Math.max(0, -2.56 * mb + 1055) : null;
+
+    // EA% = ((Aph1 − Aph3,5) / Aph1) × 100  [formule Glories]
+    // Aph1 supposée stable sur 7 j (anthocyanes totaux en conditions très acides —
+    //   moins sensibles aux variations de l'état hydrique que la fraction extractable).
+    // Pluie → Aph3,5 ↓ → EA% ↑ = extractibilité qui se dégrade. Direction correcte.
+    const ea = (aph35Proj !== null && !isNaN(aph1_0) && aph1_0 > 0)
+      ? Math.max(0, Math.min(100, ((aph1_0 - aph35Proj) / aph1_0) * 100))
+      : null;
+    const mp = null; // non projeté (nécessite DO280 mesuré simultanément)
+    // Flag : EA% à confirmer par analyse terrain après pluie significative
+    const mpIncertain = pluieCumul_j >= 10;
+
+    projections.push({ j, date, gddCumul, pluie, pluieCumul: pluieCumul_j, deltaRain, tavp, at, malique, tartrique, mb, aph35Proj, ea, mp, mpIncertain });
+  }
+
+  // Badge helper : évalue val dans [min, max] avec cible selon dir
+  const b = (cls, txt) => cls ? `<span class="badge ${cls}" style="font-size:0.72em;padding:2px 6px;">${txt}</span>` : '';
+  function predBadge(val, cMin, cCible, cMax, dir) {
+    if (val === null || isNaN(val)) return { cls: null, txt: '' };
+    const inRange = val >= cMin && val <= cMax;
+    const atCible = inRange && (dir === 'up' ? val >= cCible : val <= cCible);
+    return inRange
+      ? { cls: atCible ? 'ok' : 'warn', txt: atCible ? '✓' : '~' }
+      : { cls: 'nok', txt: '✗' };
+  }
+
+  // Lignes du tableau
+  const rows = projections.map(d => {
+    const jourLabel  = `${nomJours[d.date.getDay()]} ${d.date.getDate()}/${d.date.getMonth()+1}`;
+    const bTavp  = predBadge(d.tavp,     c.tavp_min,     c.tavp_cible,     c.tavp_max,     'down');
+    const bAt    = predBadge(d.at,       c.at_min,       c.at_cible,       c.at_max,       'up');
+    const bMal   = predBadge(d.malique,  c.malique_min,  c.malique_cible,  c.malique_max,  'up');
+    const bTart  = predBadge(d.tartrique,c.tartrique_min,c.tartrique_cible,c.tartrique_max,'up');
+    // EA% projeté : dir 'down' — moins c'est élevé, mieux c'est (cible < 40%)
+    const bEa = predBadge(d.ea, c.ea_min, c.ea_cible, c.ea_max, 'down');
+
+    // Verdict : TOUS les critères disponibles doivent être dans leur plage [min, max]
+    const criteres = [bTavp, bAt, bMal, bTart, bEa].filter(x => x.cls !== null);
+    const tousOkJ  = criteres.every(x => x.cls !== 'nok');
+    const tousCible= criteres.every(x => x.cls === 'ok');
+
+    // Surmaturité : un paramètre dépasse son plafond "acceptable"
+    // TAVP > max → alcool trop élevé / AT < min → acidité trop dégradée / MH₂ < min → malique épuisé
+    const surmaturation =
+      (d.tavp  > c.tavp_max)                              ||
+      (d.at       !== null && d.at       < c.at_min)      ||
+      (d.malique  !== null && d.malique  < c.malique_min);
+
+    // -----------------------------------------------------------------------
+    // Verdict de maturité dans la projection
+    //
+    // Les paramètres projetés n'évoluent QUE dans un sens :
+    //   TAVP  ↑  (augmente) → warn = dépassé la cible vers surmaturité
+    //   AT    ↓  (diminue)  → warn = tombé sous la cible, AT trop dégradée
+    //   MH₂   ↓  (diminue)  → warn = tombé sous la cible, malique épuisé
+    //   TH₂   → stable      → warn = déjà sous cible dès la saisie
+    //
+    // Dans tous les cas, badge 'warn' = paramètre a dépassé son optimum
+    // dans le sens de la surmaturité → on ne peut PAS dire "Attendre".
+    // -----------------------------------------------------------------------
+    const hasWarnSurmat = criteres.some(x => x.cls === 'warn');
+
+    let verdictIco, rowBg;
+    if (surmaturation) {
+      verdictIco = `<span style="display:inline-block;padding:3px 8px;border-radius:6px;font-size:0.78em;font-weight:800;background:#7B1C2E;color:#fff;white-space:nowrap;">🚨 Vendange urgente</span>`;
+      rowBg = 'background:rgba(123,28,46,0.09)';
+    } else if (tousCible) {
+      verdictIco = `<span style="display:inline-block;padding:3px 8px;border-radius:6px;font-size:0.78em;font-weight:800;background:#2D6A4F;color:#fff;white-space:nowrap;">✅ Prêt à vendanger</span>`;
+      rowBg = 'background:rgba(45,106,79,0.07)';
+    } else if (tousOkJ && hasWarnSurmat) {
+      // Tous dans [min, max] mais ≥1 paramètre a dépassé sa cible → l'optimum est passé
+      verdictIco = `<span style="display:inline-block;padding:3px 8px;border-radius:6px;font-size:0.78em;font-weight:700;background:#C0392B;color:#fff;white-space:nowrap;">🟠 Maturité avancée</span>`;
+      rowBg = 'background:rgba(192,57,43,0.06)';
+    } else if (tousOkJ) {
+      // Tous dans [min, max], aucun warn → critères en zone mais pas encore tous à cible (rare)
+      verdictIco = `<span style="display:inline-block;padding:3px 8px;border-radius:6px;font-size:0.78em;font-weight:700;background:#E76F51;color:#fff;white-space:nowrap;">⏳ Attendre</span>`;
+      rowBg = 'background:rgba(231,111,81,0.06)';
+    } else {
+      verdictIco = `<span style="display:inline-block;padding:3px 8px;border-radius:6px;font-size:0.78em;font-weight:700;background:#F59F00;color:#fff;white-space:nowrap;">⚠️ Trop tôt</span>`;
+      rowBg = 'background:rgba(245,159,0,0.05)';
+    }
+
+    const pluieCell = d.pluie > 0 ? `<br><small style="color:#4a90d9;font-weight:400;">🌧 ${d.pluie.toFixed(0)} mm${d.pluie >= 10 ? ' ⚠' : ''}</small>` : '';
+    const malCell   = d.malique   !== null ? `${d.malique.toFixed(1)} ${b(bMal.cls, bMal.txt)}`   : '—';
+    const tartCell  = d.tartrique !== null ? `${d.tartrique.toFixed(1)} ${b(bTart.cls, bTart.txt)}` : '—';
+    // Masse baies : corrigée par la pluie cumulée (Ojeda et al. 2002)
+    const mbDelta = d.mb !== null && !isNaN(mb0) && mb0 > 0 ? ((d.mb - mb0) / mb0 * 100) : 0;
+    const mbCell = d.mb !== null
+      ? `${d.mb.toFixed(1)} g${
+          mbDelta >= 3 ? `<br><small style="color:#c0392b;font-size:0.78em;font-weight:600;">🌧 +${mbDelta.toFixed(0)}% dilution</small>` :
+          mbDelta >= 1 ? `<br><small style="color:#4a90d9;font-size:0.78em;">🌧 +${mbDelta.toFixed(0)}% gonflement</small>` :
+          ''}`
+      : '—';
+    // EA% projeté (MB → Aph3,5 via régression, Aph1 stable → EA% = (Aph1−Aph3,5)/Aph1×100)
+    const eaCell = d.ea !== null
+      ? `${d.ea.toFixed(0)}% ${b(bEa.cls, bEa.txt)}${d.mpIncertain
+          ? `<br><small style="color:#c0392b;font-size:0.75em;font-weight:600;">⚠ analyser après pluie</small>`
+          : ''}`
+      : '—';
+
+    return `<tr style="${rowBg}">
+      <td style="padding:8px 10px;font-weight:700;">J+${d.j}<br><small style="font-weight:400;color:#888;">${jourLabel}</small>${pluieCell}</td>
+      <td style="padding:8px 10px;text-align:center;">${d.gddCumul.toFixed(1)}</td>
+      <td style="padding:8px 10px;text-align:center;">${d.tavp.toFixed(1)} ${b(bTavp.cls, bTavp.txt)}</td>
+      <td style="padding:8px 10px;text-align:center;">${d.at.toFixed(1)} ${b(bAt.cls, bAt.txt)}</td>
+      <td style="padding:8px 10px;text-align:center;">${malCell}</td>
+      <td style="padding:8px 10px;text-align:center;">${tartCell}</td>
+      <td style="padding:8px 10px;text-align:center;">${mbCell}</td>
+      <td style="padding:8px 10px;text-align:center;">${eaCell}</td>
+      <td style="padding:8px 10px;text-align:center;">${verdictIco}</td>
+    </tr>`;
+  }).join('');
+
+  // Valeurs J0 (ligne de référence)
+  const row0 = `<tr style="background:var(--bg2);color:#888;font-size:0.88em;">
+    <td style="padding:6px 10px;font-style:italic;">J+0 (auj.)</td>
+    <td style="padding:6px 10px;text-align:center;">0</td>
+    <td style="padding:6px 10px;text-align:center;">${tavp0.toFixed(1)}</td>
+    <td style="padding:6px 10px;text-align:center;">${at0.toFixed(1)}</td>
+    <td style="padding:6px 10px;text-align:center;">${!isNaN(malique0)  ? malique0.toFixed(1)  : '—'}</td>
+    <td style="padding:6px 10px;text-align:center;">${!isNaN(tartrique0)? tartrique0.toFixed(1): '—'}</td>
+    <td style="padding:6px 10px;text-align:center;">${!isNaN(mb0)  ? mb0.toFixed(1)+' g' : '—'}</td>
+    <td style="padding:6px 10px;text-align:center;">${ea_j0 !== null ? ea_j0.toFixed(0)+'%' : '—'}</td>
+    <td style="padding:6px 10px;text-align:center;">📍</td>
+  </tr>`;
+
+  const el = document.getElementById('resultat-prediction');
+  el.innerHTML = `
+    <div class="card">
+      <h2>🔮 Projections J+1 → J+7 — ${parcelle || 'Parcelle'}</h2>
+      <div class="info-box" style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:18px;align-items:center;">
+        <span>☀️ GDD cumulés : <strong>${gddTotal.toFixed(1)} °C·j</strong>${gddTotal === 0 ? ' — Entrez ou récupérez les températures.' : ''}</span>
+        ${pluieTotal > 0 ? `<span style="color:#4a90d9;">🌧 Pluviométrie totale : <strong>${pluieTotal.toFixed(0)} mm</strong>${pluieTotal >= 30 ? ' — <strong>risque de dilution élevé</strong>' : pluieTotal >= 10 ? ' — dilution modérée prise en compte' : ''}</span>` : ''}
+      </div>
+      <div style="margin-bottom:14px;padding:8px 12px;background:#F0E6FF;border-radius:6px;font-size:0.85em;color:#6A0DAD;">
+        🏷 Critères utilisés : appellation <strong>${nomApp}</strong>
+        — <a href="#" onclick="showPage(null,'criteres');return false;" style="color:#6A0DAD;">Modifier les critères</a>
+      </div>
+
+      <div class="meteo-grid" id="meteo-display">${meteoHTML}</div>
+
+      <div style="margin-top:18px;overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:0.9em;">
+          <thead>
+            <tr style="background:var(--bg2);color:#888;font-size:0.78em;text-transform:uppercase;letter-spacing:0.03em;">
+              <th style="padding:8px 10px;text-align:left;border-bottom:2px solid var(--border);">Jour</th>
+              <th style="padding:8px 10px;text-align:center;border-bottom:2px solid var(--border);">GDD cum.<br><span style="font-weight:400;">(°C·j)</span></th>
+              <th style="padding:8px 10px;text-align:center;border-bottom:2px solid var(--border);">TAVP<br><span style="font-weight:400;">(%vol)</span></th>
+              <th style="padding:8px 10px;text-align:center;border-bottom:2px solid var(--border);">AT<br><span style="font-weight:400;">(g/L)</span></th>
+              <th style="padding:8px 10px;text-align:center;border-bottom:2px solid var(--border);">MH₂<br><span style="font-weight:400;">(g/L)</span></th>
+              <th style="padding:8px 10px;text-align:center;border-bottom:2px solid var(--border);">TH₂<br><span style="font-weight:400;">(g/L)</span></th>
+              <th style="padding:8px 10px;text-align:center;border-bottom:2px solid var(--border);">M. baies<br><span style="font-weight:400;">(g) ★</span></th>
+              <th style="padding:8px 10px;text-align:center;border-bottom:2px solid var(--border);">EA% ★<br><span style="font-weight:400;">(cible &lt;40%)</span></th>
+              <th style="padding:8px 10px;text-align:center;border-bottom:2px solid var(--border);">Verdict</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${row0}
+            ${rows}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:10px;font-size:0.78em;color:#555;background:#F0E6FF;border-radius:6px;padding:8px 12px;border-left:3px solid #6A0DAD;">
+        ★ <strong>Correction pluviométrique de la masse des baies</strong> (Ojeda et al. 2002, <em>Am. J. Enol. Vitic.</em>, 526 citations) :
+        stress hydrique post-véraison → baies à <strong>85 % du poids témoin (−15 %)</strong>. Coefficient appliqué par symétrie :
+        <strong>+0,15 % MB par mm de pluie cumulée</strong>, plafonné à +15 %
+        (Ramos et al. 2020, <em>Sci. Hortic.</em> ; Pérez-Álvarez et al. 2021, <em>Agric. Water Manag.</em>).
+        Pluie → MB ↑ → Aph3,5 ↓ (régression) → <strong>EA% ↑</strong> = extractibilité qui se dégrade.
+        Chaîne complète : <em>Aph3,5 = −2,56 × MB + 1055</em>, puis <em>EA% = (Aph1 − Aph3,5) / Aph1 × 100</em>.
+        <strong>Aph1 supposée stable</strong> sur 7 j (anthocyanes totaux en conditions très acides — moins sensibles à l'état hydrique de la baie).
+        Après ≥ 10 mm cumulés : <strong>⚠ analyser après pluie</strong> — remettre à jour MB et Aph1.
+      </div>
+
+      <div style="margin-top:12px;font-size:0.78em;color:#666;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;">
+        <strong style="color:#888;margin-right:2px;white-space:nowrap;">Lecture du verdict :</strong>
+        <span style="display:inline-flex;align-items:center;gap:4px;"><span style="padding:2px 7px;border-radius:5px;font-weight:700;background:#F59F00;color:#fff;">⚠️ Trop tôt</span><span style="color:#aaa;">critère(s) hors plage, pas encore mûr</span></span>
+        <span style="display:inline-flex;align-items:center;gap:4px;"><span style="padding:2px 7px;border-radius:5px;font-weight:700;background:#2D6A4F;color:#fff;">✅ Prêt à vendanger</span><span style="color:#aaa;">tous en zone cible</span></span>
+        <span style="display:inline-flex;align-items:center;gap:4px;"><span style="padding:2px 7px;border-radius:5px;font-weight:700;background:#C0392B;color:#fff;">🟠 Maturité avancée</span><span style="color:#aaa;">≥1 paramètre a dépassé son optimum (AT↓, MH₂↓ ou TAVP↑ passé la cible) — l'optimum de vendange est proche ou dépassé</span></span>
+        <span style="display:inline-flex;align-items:center;gap:4px;"><span style="padding:2px 7px;border-radius:5px;font-weight:700;background:#7B1C2E;color:#fff;">🚨 Vendange urgente</span><span style="color:#aaa;">TAVP &gt; max ou AT/MH₂ &lt; min — surmaturité en cours</span></span>
+      </div>
+      <div style="margin-top:8px;font-size:0.77em;color:#aaa;display:flex;gap:10px;flex-wrap:wrap;">
+        <span><span class="badge ok">✓</span> Critère en zone cible</span>
+        <span><span class="badge warn">~</span> Passé l'optimum vers surmaturité</span>
+        <span><span class="badge nok">✗</span> Hors plage [min–max]</span>
+      </div>
+
+      <div class="info-box" style="margin-top:14px;">
+        ⚠️ <strong>Projection indicative uniquement.</strong><br>
+        Modèles utilisés : accumulation TAVP (+0,008 %vol/GDD·j, Tb = 0 °C) — Coombe (1992) ; Ribéreau-Gayon et al. (2012) ·
+        Dégradation MH₂ (−0,004 g/L/GDD·j) — Kliewer (1977) ; Sweetman et al. (2009) ·
+        TH₂ stable post-véraison — Coombe (1992).<br>
+        ⚡ <strong>EA% (extractibilité anthocyanes) :</strong> projeté via <em>MB → Aph3,5 = −2,56 × MB + 1055</em> (R²=0,48) puis <em>EA% = (Aph1 − Aph3,5) / Aph1 × 100</em>. Aph1 supposée stable, MB corrigée par la pluie (+0,15 %/mm, Ojeda et al. 2002). Pluie → EA% ↑ (extractibilité qui se dégrade). <strong>Remettre à jour après pluie significative.</strong> <strong>B/J</strong> retiré.<br>
+        🌧 <strong>Pluviométrie :</strong> indicateur visuel uniquement (pas de correction chiffrée — van Leeuwen &amp; Seguin 2006 ; Ojeda et al. 2002 documentent la dilution mais sans coefficient quantitatif validé).<br>
+        Confirmez toujours avec une analyse terrain avant de décider.
+      </div>
+    </div>
+  `;
+
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ========================
+// CRITÈRES
+// ========================
+// ========================
+// CRITÈRES PAR APPELLATION
+// ========================
+// dir:'up'   → une valeur élevée est meilleure (AT, sucres, MH₂, TH₂, N-assim, MP%, B/J)
+// dir:'down' → une valeur basse est meilleure  (pH, AV, Gluconique, TAVP, Fer, Cu, EA%)
+const CRITERES_CHAMPS = [
+  { grp:'ph',         label:'pH',                               step:0.01, dir:'down' },
+  { grp:'at',         label:'AT — Acidité totale (g/L H₂SO₄)', step:0.1,  dir:'up'   },
+  { grp:'av',         label:'AV — Acidité volatile (g/L)',      step:0.01, dir:'down' },
+  { grp:'sucre',      label:'Sucres (g/L)',                     step:1,    dir:'up'   },
+  { grp:'malique',    label:'MH₂ — Acide malique (g/L)',        step:0.1,  dir:'up'   },
+  { grp:'tartrique',  label:'TH₂ — Acide tartrique (g/L)',      step:0.1,  dir:'up'   },
+  { grp:'gluconique', label:'Gluconique (mg/L)',                 step:1,    dir:'down' },
+  { grp:'tavp',       label:'TAVP (%vol)',                      step:0.1,  dir:'down' },
+  { grp:'fer',        label:'Fer (mg/L)',                       step:0.1,  dir:'down' },
+  { grp:'cu',         label:'Cuivre — Cu (mg/L)',               step:0.01, dir:'down' },
+  { grp:'n_assim',    label:'N assimilable (mg/L)',              step:5,    dir:'up'   },
+  { grp:'mp',         label:'MP% — Maturité phénolique',        step:1,    dir:'up'   },
+  { grp:'ea',         label:'EA% — Extractibilité anthocyanes', step:1,    dir:'down' },
+  { grp:'bj',         label:'B/J — Baie / Jus',                step:0.05, dir:'up'   },
+  { grp:'aph35',      label:'Aph3,5 — Anthocyanes pH 3,5 (mg/L)', step:10, dir:'up'  },
+];
+
+function getCriteresParParcelle(nomParcelle) {
+  const parcelle = state.parcelles.find(p => p.nom === nomParcelle);
+  const app = parcelle?.appellation || 'Défaut';
+  const criteres = state.criteres[app] || state.criteres['Défaut'] || { ...DEFAULT_CRITERES };
+  return { criteres, appellation: app };
+}
+
+function getCriteresActifs() {
+  const nomParcelle = document.getElementById('dec-parcelle')?.value;
+  return getCriteresParParcelle(nomParcelle).criteres;
+}
+
+function getAppellations() {
+  const apps = new Set();
+  state.parcelles.forEach(p => { if (p.appellation) apps.add(p.appellation); });
+  return ['Défaut', ...Array.from(apps)];
+}
+
+function renderCriteresTabs() {
+  const apps = getAppellations();
+  const container = document.getElementById('appel-tabs');
+  if (!container) return;
+  container.innerHTML = apps.map(app => `
+    <button class="inner-tab ${app === currentAppelTab ? 'active' : ''}"
+      onclick="switchAppelTab('${app}')">${app}</button>
+  `).join('') + `
+    <button class="inner-tab" onclick="ajouterNouvelleAppellation()"
+      style="border-style:dashed;color:var(--rouge);">+ Nouvelle</button>
+  `;
+  document.getElementById('btn-appel-label').textContent = currentAppelTab;
+  document.getElementById('btn-copier-defaut').style.display = currentAppelTab === 'Défaut' ? 'none' : '';
+  document.getElementById('btn-suppr-appel').style.display = currentAppelTab === 'Défaut' ? 'none' : '';
+}
+
+// Convertit le nom de groupe en préfixe d'id (ex: n_assim → n-assim)
+function grpToId(grp) { return grp.replace(/_/g, '-'); }
+
+function renderCriteresForm(app) {
+  const c = state.criteres[app] || state.criteres['Défaut'] || { ...DEFAULT_CRITERES };
+  const container = document.getElementById('criteres-form-container');
+  if (!container) return;
+
+  const sections = [
+    { titre: '🔬 Physico-chimique', champs: ['ph','at','av','sucre','malique','tartrique','gluconique','tavp'] },
+    { titre: '⚗️ Métaux & Azote',   champs: ['fer','cu','n_assim'] },
+    { titre: '🧪 Tests de Glories', champs: ['mp','ea','bj'] },
+  ];
+
+  const colLbl = (txt, color) =>
+    `<div style="font-size:0.68em;text-align:center;color:${color};font-weight:700;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:2px;">${txt}</div>`;
+
+  let html = '';
+
+  sections.forEach(sec => {
+    html += `<h3 style="margin:14px 0 8px;">${sec.titre}</h3>`;
+    sec.champs.forEach(grp => {
+      const f = CRITERES_CHAMPS.find(x => x.grp === grp);
+      if (!f) return;
+      const pid  = grpToId(grp);
+      const minId   = `s-${pid}-min`,   minKey   = `${grp}_min`;
+      const cibleId = `s-${pid}-cible`, cibleKey = `${grp}_cible`;
+      const maxId   = `s-${pid}-max`,   maxKey   = `${grp}_max`;
+
+      html += `<div class="seuil-row">
+        <label>${f.label}</label>
+        <div>
+          ${colLbl('Min', '#4a90d9')}
+          <input type="number" id="${minId}" value="${c[minKey] ?? DEFAULT_CRITERES[minKey]}" step="${f.step}" style="border-color:#4a90d933;">
+        </div>
+        <div>
+          ${colLbl('Cible', '#2D6A4F')}
+          <input type="number" id="${cibleId}" value="${c[cibleKey] ?? DEFAULT_CRITERES[cibleKey]}" step="${f.step}" style="border-color:#2D6A4F44;">
+        </div>
+        <div>
+          ${colLbl('Max', '#c0392b')}
+          <input type="number" id="${maxId}" value="${c[maxKey] ?? DEFAULT_CRITERES[maxKey]}" step="${f.step}" style="border-color:#c0392b33;">
+        </div>
+      </div>`;
+    });
+  });
+
+  container.innerHTML = html;
+}
+
+function switchAppelTab(app) {
+  currentAppelTab = app;
+  renderCriteresTabs();
+  renderCriteresForm(app);
+}
+
+function chargerCriteres() {
+  if (!state.criteres['Défaut']) state.criteres['Défaut'] = { ...DEFAULT_CRITERES };
+  renderCriteresTabs();
+  renderCriteresForm(currentAppelTab);
+}
+
+function sauvegarderCriteres() {
+  const c = {};
+  CRITERES_CHAMPS.forEach(f => {
+    ['min','cible','max'].forEach(type => {
+      const id  = `s-${grpToId(f.grp)}-${type}`;
+      const key = `${f.grp}_${type}`;
+      const el  = document.getElementById(id);
+      if (el && el.value !== '') c[key] = parseFloat(el.value);
+    });
+  });
+  state.criteres[currentAppelTab] = c;
+  sauvegarder();
+  document.getElementById('criteres-saved').style.display = 'block';
+  setTimeout(() => document.getElementById('criteres-saved').style.display = 'none', 2500);
+}
+
+function ajouterNouvelleAppellation() {
+  const nom = prompt('Nom de la nouvelle appellation :');
+  if (!nom || !nom.trim()) return;
+  const n = nom.trim();
+  if (!state.criteres[n]) state.criteres[n] = { ...state.criteres['Défaut'] };
+  currentAppelTab = n;
+  sauvegarder();
+  renderCriteresTabs();
+  renderCriteresForm(n);
+}
+
+function copierDepuisDefaut() {
+  if (!confirm(`Écraser les critères de "${currentAppelTab}" avec ceux de "Défaut" ?`)) return;
+  state.criteres[currentAppelTab] = { ...state.criteres['Défaut'] };
+  sauvegarder();
+  renderCriteresForm(currentAppelTab);
+}
+
+function supprimerAppellation() {
+  if (!confirm(`Supprimer les critères de "${currentAppelTab}" ?`)) return;
+  delete state.criteres[currentAppelTab];
+  currentAppelTab = 'Défaut';
+  sauvegarder();
+  renderCriteresTabs();
+  renderCriteresForm('Défaut');
+}
+
+// ========================
+// GÉOCODAGE & MÉTÉO AUTO
+// ========================
+async function geocoderCommune(cp, commune) {
+  const headers = { 'Accept': 'application/json' };
+
+  // 1. Photon (OpenStreetMap) par code postal — fonctionne depuis file://
+  if (cp && /^\d{5}$/.test(cp)) {
+    try {
+      const url = `https://photon.komoot.io/api/?q=${cp}&lang=fr&limit=5&bbox=-5,41,10,51`;
+      const res = await fetch(url, { headers });
+      const data = await res.json();
+      const feat = data.features?.find(f =>
+        f.properties?.country === 'France' &&
+        (f.properties?.postcode === cp || f.properties?.type === 'city' || f.properties?.type === 'town' || f.properties?.type === 'village')
+      ) || data.features?.[0];
+      if (feat) {
+        const [lon, lat] = feat.geometry.coordinates;
+        const nom = feat.properties.name || feat.properties.city || commune || cp;
+        return { lat, lon, nom };
+      }
+    } catch(e) { /* fallback */ }
+  }
+
+  // 2. API Géo gouv.fr par code postal
+  if (cp && /^\d{5}$/.test(cp)) {
+    try {
+      const url = `https://geo.api.gouv.fr/communes?codePostal=${cp}&fields=nom,centre&boost=population&limit=1`;
+      const res = await fetch(url, { headers });
+      const data = await res.json();
+      if (data?.length > 0 && data[0].centre?.coordinates) {
+        const [lon, lat] = data[0].centre.coordinates;
+        return { lat, lon, nom: data[0].nom };
+      }
+    } catch(e) { /* fallback */ }
+  }
+
+  // 3. Photon par nom de commune
+  if (commune) {
+    try {
+      const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(commune)}&lang=fr&limit=3&bbox=-5,41,10,51`;
+      const res = await fetch(url, { headers });
+      const data = await res.json();
+      const feat = data.features?.find(f => f.properties?.country === 'France') || data.features?.[0];
+      if (feat) {
+        const [lon, lat] = feat.geometry.coordinates;
+        return { lat, lon, nom: feat.properties.name || commune };
+      }
+    } catch(e) { /* fallback */ }
+  }
+
+  // 4. Open-Meteo par nom de commune (dernier recours)
+  if (commune) {
+    try {
+      const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(commune)}&count=1&language=fr&format=json&countryCode=FR`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.results?.length > 0) {
+        return { lat: data.results[0].latitude, lon: data.results[0].longitude, nom: data.results[0].name };
+      }
+    } catch(e) { /* échec total */ }
+  }
+
+  return null;
+}
+
+async function recupererMeteoAuto() {
+  const sel = document.getElementById('pred-parcelle');
+  const nomParcelle = sel.value;
+  const btn = document.getElementById('btn-meteo-auto');
+  const status = document.getElementById('meteo-status');
+
+  if (!nomParcelle) {
+    status.className = 'meteo-status err';
+    status.style.display = '';
+    status.textContent = '⚠️ Sélectionnez d\'abord une parcelle.';
+    return;
+  }
+
+  const parcelle = state.parcelles.find(p => p.nom === nomParcelle);
+  if (!parcelle) return;
+
+  // Si pas de coordonnées, on essaie de géocoder maintenant (CP prioritaire)
+  if (!parcelle.lat && (parcelle.cp || parcelle.lieu)) {
+    btn.innerHTML = '<span class="spinner"></span> Géolocalisation…';
+    btn.disabled = true;
+    const coords = await geocoderCommune(parcelle.cp, parcelle.lieu);
+    if (coords) {
+      parcelle.lat = coords.lat;
+      parcelle.lon = coords.lon;
+      if (!parcelle.lieu && coords.nom) parcelle.lieu = coords.nom;
+      sauvegarder();
+    }
+  }
+
+  if (!parcelle.lat) {
+    btn.innerHTML = '🌤 Récupérer la météo automatiquement';
+    btn.disabled = false;
+    status.className = 'meteo-status err';
+    status.style.display = '';
+    const locLabel = parcelle.cp ? `CP ${parcelle.cp}` : `"${parcelle.lieu}"`;
+    status.textContent = `❌ Localisation ${locLabel} introuvable. Vérifiez le code postal dans la fiche parcelle.`;
+    return;
+  }
+
+  btn.innerHTML = '<span class="spinner"></span> Récupération en cours…';
+  btn.disabled = true;
+  status.className = 'meteo-status';
+  status.style.display = 'none';
+
+  try {
+    // forecast_days=8 : index 0 = aujourd'hui (ignoré), index 1..7 = J+1..J+7
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${parcelle.lat}&longitude=${parcelle.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=Europe%2FParis&forecast_days=8`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const daily = data.daily;
+
+    // i=0 → champ tmax-0 (J+1 dans la grille) → API index 1 (demain)
+    // i=1 → champ tmax-1 (J+2)                → API index 2 (après-demain)  etc.
+    for (let i = 0; i < 7; i++) {
+      const tmaxEl  = document.getElementById('tmax-'  + i);
+      const tminEl  = document.getElementById('tmin-'  + i);
+      const pluieEl = document.getElementById('pluie-' + i);
+      const apiIdx  = i + 1; // décalage : on ignore l'index 0 (aujourd'hui)
+      if (tmaxEl && daily.temperature_2m_max[apiIdx] != null) {
+        tmaxEl.value = daily.temperature_2m_max[apiIdx].toFixed(1);
+      }
+      if (tminEl && daily.temperature_2m_min[apiIdx] != null) {
+        tminEl.value = daily.temperature_2m_min[apiIdx].toFixed(1);
+      }
+      if (pluieEl && daily.precipitation_sum && daily.precipitation_sum[apiIdx] != null) {
+        pluieEl.value = Math.round(daily.precipitation_sum[apiIdx]);
+      }
+    }
+    calculerGDD();
+
+    // Afficher les icônes météo dans les cases
+    for (let i = 0; i < 7; i++) {
+      const wc = daily.weathercode ? daily.weathercode[i] : null;
+      const iconeEl = document.querySelector(`#meteo-inputs .meteo-icone-${i}`);
+      if (iconeEl) iconeEl.textContent = wcodeToIcon(wc, daily.temperature_2m_max[i]);
+    }
+
+    status.className = 'meteo-status ok';
+    status.style.display = '';
+    const commune = parcelle.lieu || '—';
+    const cp      = parcelle.cp  || '—';
+    const verifyUrl = `https://api.open-meteo.com/v1/forecast?latitude=${parcelle.lat}&longitude=${parcelle.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=Europe%2FParis&forecast_days=8`;
+    status.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:1.4em;">✅</span>
+        <div>
+          <div style="font-weight:700;font-size:1em;">Météo récupérée — J+1 à J+7</div>
+          <div style="font-size:0.88em;margin-top:2px;opacity:0.85;">
+            📍 <strong>${commune}</strong>${cp !== '—' ? ` &nbsp;·&nbsp; 📮 ${cp}` : ''}
+            &nbsp;·&nbsp; 🌐 ${parcelle.lat.toFixed(4)}°N, ${parcelle.lon.toFixed(4)}°E
+            &nbsp;·&nbsp; Source : <a href="https://open-meteo.com" target="_blank" style="color:inherit;font-weight:600;">Open-Meteo</a> / AROME
+            &nbsp;·&nbsp; <a href="${verifyUrl}" target="_blank" style="color:inherit;text-decoration:underline;font-size:0.9em;">🔗 Vérifier les données brutes (JSON)</a>
+          </div>
+        </div>
+      </div>`;
+
+  } catch(e) {
+    status.className = 'meteo-status err';
+    status.style.display = '';
+    status.textContent = '❌ Erreur lors de la récupération météo. Vérifiez votre connexion internet.';
+  }
+
+  btn.innerHTML = '🌤 Actualiser la météo';
+  btn.disabled = false;
+}
+
+function wcodeToIcon(wc, tmax) {
+  if (wc == null) return tmax >= 26 ? '☀️' : '🌤';
+  if (wc === 0) return '☀️';
+  if (wc <= 3) return tmax >= 24 ? '🌤' : '⛅';
+  if (wc <= 49) return '🌫';
+  if (wc <= 59) return '🌧';
+  if (wc <= 69) return '🌨';
+  if (wc <= 79) return '❄️';
+  if (wc <= 82) return '🌦';
+  if (wc <= 99) return '⛈';
+  return '🌤';
+}
+
+// ========================
+// PERSISTANCE (Firestore)
+// ========================
+function sauvegarder() {
+  OAD_DOC.set({
+    parcelles:  state.parcelles,
+    criteres:   state.criteres,
+    analyses:   state.analyses,
+    updatedAt:  firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(err => console.error('Firestore save error:', err));
+}
+
+// ========================
+// DONNÉES DÉMO (ligne 1 du tableau — 20/08/2025 Demoiselles 1)
+// ========================
+function chargerDonneesDemoGlories() {
+  const demo = {
+    'dec-ph': 3.21,
+    'dec-at': 5.13,
+    'dec-av': 0.07,
+    'dec-sucre': 179.9,
+    'dec-tavp': 10.3,
+    'dec-densite': 1077.4,
+    'dec-malique': 2.8,
+    'dec-tartrique': 7.5,
+    'dec-gluconique': 5.0,
+    'dec-n-ammo': 105,
+    'dec-n-amine': 123,
+    'dec-fer': 0.14,
+    'dec-cu': 0.0,
+    'dec-masse-baies': 164.6,
+    'dec-masse-jus': 100.3,
+    'dec-do280': 56.9,
+    'dec-aph35': 653,
+    'dec-aph1': 790,
+  };
+
+  // Ajouter la parcelle si elle n'existe pas
+  if (!state.parcelles.find(p => p.nom === 'Demoiselles 1')) {
+    state.parcelles.push({ id: Date.now(), nom: 'Demoiselles 1', appellation: 'Gevrey-Chambertin', lieu: 'Gevrey-Chambertin', cepage: 'Pinot Noir', surface: '—', lat: null, lon: null });
+    sauvegarder();
+  }
+
+  // Remplir la date
+  document.getElementById('dec-date').value = '2025-08-20';
+
+  // Remplir la parcelle
+  mettreAJourSelectParcelles();
+  document.getElementById('dec-parcelle').value = 'Demoiselles 1';
+
+  // Remplir tous les champs
+  Object.entries(demo).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  });
+
+  // Recalculer les indices
+  mettreAJourIndices();
+
+  // Feedback visuel
+  const btn = event.target;
+  btn.textContent = '✅ Données chargées !';
+  btn.style.color = 'var(--vert)';
+  setTimeout(() => { btn.textContent = '🧪 Charger données test — Demoiselles 1 (20/08/2025)'; btn.style.color = ''; }, 2500);
+}
+
+function chargerDemosPrediction() {
+  // Ajouter la parcelle si elle n'existe pas
+  if (!state.parcelles.find(p => p.nom === 'Demoiselles 1')) {
+    state.parcelles.push({ id: Date.now(), nom: 'Demoiselles 1', appellation: 'Gevrey-Chambertin', lieu: 'Gevrey-Chambertin', cepage: 'Pinot Noir', surface: '—', lat: null, lon: null });
+    sauvegarder();
+  }
+  mettreAJourSelectParcelles();
+
+  // Données actuelles (20/08/2025 — Demoiselles 1)
+  document.getElementById('pred-parcelle').value = 'Demoiselles 1';
+  document.getElementById('pred-veraison').value = '2025-07-28';
+  document.getElementById('pred-sucre').value    = '11.5';
+  document.getElementById('pred-at').value       = '5.1';
+  document.getElementById('pred-malique').value  = '2.8';
+  document.getElementById('pred-tartrique').value= '5.2';
+  document.getElementById('pred-mb').value       = '164.6'; // masse baies démo (Demoiselles 1)
+  document.getElementById('pred-aph1').value     = '790';   // Aph1 démo (Demoiselles 1)
+  document.getElementById('pred-do280').value    = '56.9';  // DO 280 démo (optionnel)
+
+  // Météo simulée (7 jours typiques fin août Bourgogne — avec épisode pluvieux J+4)
+  const meteoDemo = [
+    { tmax: 26, tmin: 14, pluie:  0 },
+    { tmax: 28, tmin: 15, pluie:  0 },
+    { tmax: 27, tmin: 13, pluie:  0 },
+    { tmax: 24, tmin: 12, pluie: 18 },  // épisode pluvieux
+    { tmax: 22, tmin: 11, pluie:  5 },
+    { tmax: 25, tmin: 13, pluie:  0 },
+    { tmax: 29, tmin: 16, pluie:  0 },
+  ];
+  meteoDemo.forEach((j, i) => {
+    const tmaxEl  = document.getElementById('tmax-'  + i);
+    const tminEl  = document.getElementById('tmin-'  + i);
+    const pluieEl = document.getElementById('pluie-' + i);
+    if (tmaxEl)  tmaxEl.value  = j.tmax;
+    if (tminEl)  tminEl.value  = j.tmin;
+    if (pluieEl) pluieEl.value = j.pluie;
+  });
+  calculerGDD();
+
+  // Feedback
+  const btn = event.target;
+  btn.textContent = '✅ Données chargées !';
+  btn.style.color = 'var(--vert)';
+  setTimeout(() => { btn.textContent = '🧪 Charger données test (Demoiselles 1 — 20/08/2025)'; btn.style.color = ''; }, 2500);
+}
+
+// ========================
+// MODALE ANALYSE COMPLÈTE
+// ========================
+function fermerModal() {
+  document.getElementById('analyse-modal').classList.remove('open');
+}
+
+function openAnalyseModal(parcIdx, anaIdx) {
+  const p = state.parcelles[parcIdx];
+  if (!p) return;
+  const analyses = (state.analyses[p.nom] || [])
+    .slice().sort((a, b) => b.date.localeCompare(a.date));
+  const a = analyses[anaIdx];
+  if (!a) return;
+
+  const { criteres: c, appellation: nomApp } = getCriteresParParcelle(p.nom);
+  const dateLabel = a.date ? new Date(a.date + 'T12:00:00').toLocaleDateString('fr-FR', { day:'numeric', month:'long', year:'numeric' }) : '—';
+
+  // En-tête modal
+  document.getElementById('modal-titre').textContent = `🍇 ${p.nom} — ${dateLabel}`;
+  document.getElementById('modal-sous-titre').innerHTML =
+    `${p.cepage}${p.appellation ? ' · 🏷 ' + p.appellation : ''} · Critères : <strong>${nomApp}</strong>`;
+
+  // Helper affichage valeur
+  const f  = (v, dec=1) => (v !== null && v !== undefined && !isNaN(v)) ? parseFloat(v).toFixed(dec) : '—';
+  const chip = (lbl, val, unit='') => `<div class="val-chip"><div class="lbl">${lbl}</div><div class="val">${val !== '—' ? val + (unit ? ' <span style="font-size:0.8em;font-weight:400;color:#888;">'+unit+'</span>' : '') : '—'}</div></div>`;
+
+  // Reconstruire params pour les jauges
+  const params = [];
+  if (a.ph)        params.push({ label:'pH',                    valeur: f(a.ph,2)+' pH',       ...evalP(a.ph,       c.ph_min,       c.ph_cible,       c.ph_max,       'down'), cat:'🔬' });
+  if (a.at)        params.push({ label:'AT (g/L H₂SO₄)',        valeur: f(a.at)+' g/L',        ...evalP(a.at,       c.at_min,       c.at_cible,       c.at_max,       'up'),   cat:'🔬' });
+  if (a.av)        params.push({ label:'AV (g/L)',               valeur: f(a.av,2)+' g/L',      ...evalP(a.av,       c.av_min,       c.av_cible,       c.av_max,       'down'), cat:'🔬' });
+  if (a.sucre)     params.push({ label:'Sucres (g/L)',           valeur: f(a.sucre,0)+' g/L',   ...evalP(a.sucre,    c.sucre_min,    c.sucre_cible,    c.sucre_max,    'up'),   cat:'🔬' });
+  if (a.tavp)      params.push({ label:'TAVP (%vol)',            valeur: f(a.tavp)+' %vol',     ...evalP(a.tavp,     c.tavp_min,     c.tavp_cible,     c.tavp_max,     'down'), cat:'🔬' });
+  if (a.malique)   params.push({ label:'MH₂ — Acide malique',   valeur: f(a.malique)+' g/L',   ...evalP(a.malique,  c.malique_min,  c.malique_cible,  c.malique_max,  'up'),   cat:'🔬' });
+  if (a.tartrique) params.push({ label:'TH₂ — Acide tartrique', valeur: f(a.tartrique)+' g/L', ...evalP(a.tartrique,c.tartrique_min,c.tartrique_cible,c.tartrique_max,'up'),   cat:'🔬' });
+  if (a.gluconique)params.push({ label:'Gluconique (mg/L)',      valeur: f(a.gluconique,0)+' mg/L',...evalP(a.gluconique,c.gluconique_min,c.gluconique_cible,c.gluconique_max,'down'),cat:'🔬' });
+  if (a.fer)       params.push({ label:'Fer (mg/L)',             valeur: f(a.fer,2)+' mg/L',    ...evalP(a.fer,      c.fer_min,      c.fer_cible,      c.fer_max,      'down'), cat:'⚗️' });
+  if (a.cu)        params.push({ label:'Cuivre — Cu (mg/L)',     valeur: f(a.cu,2)+' mg/L',     ...evalP(a.cu,       c.cu_min,       c.cu_cible,       c.cu_max,       'down'), cat:'⚗️' });
+  if (a.nAmmo && a.nAmine) {
+    const nA = a.nAmmo + a.nAmine;
+    params.push({ label:'N assimilable (mg/L)', valeur: Math.round(nA)+' mg/L', ...evalP(nA, c.n_assim_min, c.n_assim_cible, c.n_assim_max, 'up'), cat:'⚗️' });
+  }
+  if (a.mpPct !== null && a.mpPct !== undefined)
+    params.push({ label:'MP% — Maturité phénolique',       valeur: f(a.mpPct)+'%', ...evalP(a.mpPct, c.mp_min, c.mp_cible, c.mp_max, 'up'),   pheno:true, cat:'🧪' });
+  if (a.ea !== null && a.ea !== undefined)
+    params.push({ label:'EA% — Extractibilité anthocyanes', valeur: f(a.ea)+'%',   ...evalP(a.ea,   c.ea_min, c.ea_cible, c.ea_max, 'down'), pheno:true, cat:'🧪' });
+  if (a.bj !== null && a.bj !== undefined)
+    params.push({ label:'B/J — Baie / Jus',                valeur: f(a.bj,2),     ...evalP(a.bj,   c.bj_min, c.bj_cible, c.bj_max, 'up'),   pheno:true, cat:'🧪' });
+
+  const nbOk    = params.filter(p => p.ok).length;
+  const nbCible = params.filter(p => p.cible).length;
+  const tousOk  = params.length > 0 && params.every(p => p.ok);
+  const pctCible= params.length > 0 ? nbCible / params.length : 0;
+  const nbHors  = params.filter(p => !p.ok).length;
+  const vcls    = a.verdictClass || (tousOk && pctCible >= 0.7 ? 'pret' : tousOk ? 'attente' : 'early');
+
+  const verdMap = { pret: ['var(--vert-clair)','var(--vert)'], attente: ['var(--orange-clair)','var(--orange)'], early: ['#FFF9DB','#F59F00'] };
+  const [vBg, vBord] = verdMap[vcls] || verdMap.early;
+
+  const jaugesHTML = params.map(p => {
+    const fillColor = p.cible ? 'var(--vert)' : p.ok ? 'var(--orange)' : 'var(--rouge)';
+    const barBg     = p.ok ? '#E8E8E8' : 'rgba(183,28,28,0.10)';
+    const rPct = Math.min(100, Math.max(0, p.rangePct));
+    const cPct = Math.min(98,  Math.max(2, p.ciblePct));
+    const emoji = p.cible ? '✅' : p.ok ? '🟡' : '❌';
+    return `<div class="jauge-item">
+      <div class="jauge-label">
+        <span>${p.pheno ? '🧪 ' : p.cat + ' '}${p.label}</span>
+        <span>${p.valeur} ${emoji}</span>
+      </div>
+      <div class="jauge-bar" style="background:${barBg};">
+        <div style="position:absolute;top:0;bottom:0;left:${cPct}%;width:2px;background:#2D6A4F;z-index:2;opacity:0.7;"></div>
+        <div style="height:100%;width:${rPct}%;background:${fillColor};border-radius:5px;position:relative;z-index:1;transition:width 0.5s;"></div>
+      </div>
+      <div style="font-size:0.72em;margin-top:3px;display:flex;justify-content:space-between;">
+        <span style="color:#4a90d9;">↳ min : ${p.minVal}</span>
+        <span style="color:#2D6A4F;font-weight:600;">▎cible : ${p.cibleVal}</span>
+        <span style="color:#c0392b;">max : ${p.maxVal} ↲</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const nAssim = (a.nAmmo && a.nAmine) ? Math.round(a.nAmmo + a.nAmine) + ' mg/L' : '—';
+
+  document.getElementById('modal-body').innerHTML = `
+    <!-- Verdict -->
+    <div style="border-radius:10px;padding:14px 16px;text-align:center;margin-bottom:16px;background:${vBg};border:2px solid ${vBord};">
+      <div style="font-size:1.3em;font-weight:800;color:${vBord};">${a.verdictTitre || '—'}</div>
+      <div style="font-size:0.85em;opacity:0.8;margin-top:3px;">${nbOk}/${params.length} critères dans leur plage · ${nbCible}/${params.length} cibles atteintes${nbHors>0?' · ⚠️ '+nbHors+' hors plage':''}</div>
+    </div>
+
+    <!-- Physico-chimie -->
+    <div class="modal-section">
+      <h3>🔬 Physico-chimie</h3>
+      <div class="val-grid">
+        ${chip('pH',       f(a.ph,2))}
+        ${chip('AT',       f(a.at),     'g/L H₂SO₄')}
+        ${chip('AV',       f(a.av,2),   'g/L')}
+        ${chip('Sucres',   f(a.sucre,0),'g/L')}
+        ${chip('TAVP',     f(a.tavp),   '%vol')}
+        ${chip('Densité',  f(a.densite,1),'g/cm³×10⁻³')}
+        ${chip('MH₂',      f(a.malique),'g/L')}
+        ${chip('TH₂',      f(a.tartrique),'g/L')}
+        ${chip('Gluconique',f(a.gluconique,0),'mg/L')}
+      </div>
+    </div>
+
+    <!-- Azote & Métaux -->
+    <div class="modal-section">
+      <h3>⚗️ Azote &amp; Métaux</h3>
+      <div class="val-grid">
+        ${chip('N ammoniacal', f(a.nAmmo,0), 'mg/L')}
+        ${chip('N aminé',      f(a.nAmine,0),'mg/L')}
+        ${chip('N assimilable',nAssim)}
+        ${chip('Fer',          f(a.fer,2),   'mg/L')}
+        ${chip('Cuivre (Cu)',  f(a.cu,2),    'mg/L')}
+      </div>
+    </div>
+
+    <!-- Tests de Glories -->
+    <div class="modal-section">
+      <h3>🧪 Tests de Glories</h3>
+      <div class="val-grid">
+        ${chip('DO 280 (pH 3,5)',f(a.do280,1))}
+        ${chip('Aph 3,5',        f(a.aph35,0),'mg/L')}
+        ${chip('Aph 1',          f(a.aph1,0), 'mg/L')}
+        ${chip('Masse baies',    f(a.mBaies,1),'g')}
+        ${chip('Masse jus',      f(a.mJus,1), 'g')}
+        ${chip('MP%', a.mpPct !== null && a.mpPct !== undefined ? f(a.mpPct)+'%' : '—')}
+        ${chip('EA%', a.ea    !== null && a.ea    !== undefined ? f(a.ea)+'%'    : '—')}
+        ${chip('B/J', a.bj    !== null && a.bj    !== undefined ? f(a.bj,2)      : '—')}
+      </div>
+    </div>
+
+    <!-- Évaluation multicritère -->
+    ${jaugesHTML.length ? `<div class="modal-section"><h3>📊 Évaluation multicritère</h3><div class="jauges">${jaugesHTML}</div></div>` : ''}
+  `;
+
+  document.getElementById('analyse-modal').classList.add('open');
+}
+
+// ========================
+// INIT
+// ========================
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('dec-date').valueAsDate = new Date();
+  genererInputsMeteo();
+  bindIndices();
+  mettreAJourIndices();
+  // Si session déjà active (refresh page), démarrer la sync Firestore directement
+  if (sessionStorage.getItem('oad_auth') === '1') {
+    demarrerSync();
+  } else {
+    renderParcelles(); // affiche liste vide en attendant le login
+  }
+});
+</script>
+
+<footer style="
+  background: var(--rouge);
+  color: rgba(255,255,255,0.75);
+  text-align: center;
+  padding: 14px 24px;
+  font-size: 0.78em;
+  letter-spacing: 0.3px;
+  margin-top: 32px;
+">
+  <span style="color:var(--or);font-weight:700;letter-spacing:1px;font-size:1.05em;">AOÛTAT STUDIO</span>
+  <span style="margin:0 8px;opacity:0.4;">|</span>
+  by <strong style="color:white;">Basile Boulay</strong>
+</footer>
+
+</body>
+</html>
