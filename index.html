@@ -612,7 +612,7 @@ async function verifierLogin() {
   const pass  = document.getElementById('login-pass').value;
   const errEl = document.getElementById('login-error');
   const hash  = await sha256(pass);
-  if (user === AUTH.user /* BYPASS_TEMP */) {
+  if (user === AUTH.user && hash === AUTH.passHash) {
     sessionStorage.setItem('oad_auth', '1');
     document.getElementById('login-overlay').style.display = 'none';
     demarrerSync();
