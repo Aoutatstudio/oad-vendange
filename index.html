@@ -1374,13 +1374,15 @@ function bindPredParcelle() {
       const derniere = analyses[0]; // la plus récente
       if (derniere) {
         const set = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
-        set('pred-sucre',    derniere.tavp   != null ? derniere.tavp.toFixed(2)    : null);
-        set('pred-at',       derniere.at     != null ? derniere.at.toFixed(2)      : null);
-        set('pred-malique',  derniere.malique!= null ? derniere.malique.toFixed(2) : null);
-        set('pred-tartrique',derniere.tartrique!=null? derniere.tartrique.toFixed(2): null);
-        set('pred-mb',       derniere.mBaies != null ? derniere.mBaies.toFixed(1)  : null);
-        set('pred-aph1',     derniere.aph1   != null ? Math.round(derniere.aph1)   : null);
-        set('pred-do280',    derniere.do280  != null ? derniere.do280.toFixed(1)   : null);
+        set('pred-sucre',       derniere.tavp   != null ? derniere.tavp.toFixed(2)    : null);
+        set('pred-at',          derniere.at     != null ? derniere.at.toFixed(2)      : null);
+        set('pred-malique',     derniere.malique!= null ? derniere.malique.toFixed(2) : null);
+        set('pred-tartrique',   derniere.tartrique!=null? derniere.tartrique.toFixed(2): null);
+        set('pred-mb',          derniere.mBaies != null ? derniere.mBaies.toFixed(1)  : null);
+        set('pred-aph1',        derniere.aph1   != null ? Math.round(derniere.aph1)   : null);
+        set('pred-do280',       derniere.do280  != null ? derniere.do280.toFixed(1)   : null);
+        set('pred-date-analyse', derniere.date  || null); // date du contrôle → J+0 du modèle
+        genererInputsMeteo(); // recalculer les labels météo depuis la nouvelle date d'analyse
         // Indicateur visuel
         const infoEl = document.getElementById('pred-info-derniere-analyse');
         if (infoEl) {
