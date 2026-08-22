@@ -1887,7 +1887,7 @@ function calculerPrediction() {
   for (let j = 1; j <= 7; j++) {
     gddCumul      += gddParJour[j-1];
     const pluie    = pluieParJour[j-1];
-    const date     = new Date(today); date.setDate(today.getDate() + j);
+    const date     = new Date(dateRef); date.setDate(dateRef.getDate() + j); // dates depuis l'analyse
 
     // TAVP [Coombe 1992 ; Ribéreau-Gayon et al. 2012]
     const tavp = tavp0 + gddCumul * 0.008;
