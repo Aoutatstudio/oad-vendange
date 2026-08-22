@@ -1721,10 +1721,20 @@ function calculerDecision() {
 // ========================
 function genererInputsMeteo() {
   const jours = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-  const today = new Date();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // J+0 = date de l'analyse (pré-remplie depuis le dernier contrôle)
+  const dateInput = document.getElementById('pred-date-analyse')?.value;
+  const dateRef = dateInput ? new Date(dateInput + 'T00:00:00') : new Date(today);
+
+  // Sauvegarder les valeurs existantes avant de régénérer le HTML
+  const savedTmax  = Array.from({length:7}, (_,i) => document.getElementById('tmax-' +i)?.value || '');
+  const savedTmin  = Array.from({length:7}, (_,i) => document.getElementById('tmin-' +i)?.value || '');
+  const savedPluie = Array.from({length:7}, (_,i) => document.getElementById('pluie-'+i)?.value || '');
+
   let html = '<div style="display:grid;gap:8px;">';
   html += `
-    <div style="display:grid;grid-template-columns:80px 1fr 1fr 90px;gap:8px;align-items:center;">
+    <div style="display:grid;grid-template-columns:110px 1fr 1fr 90px;gap:8px;align-items:center;">
       <span style="font-size:0.75em;font-weight:700;color:#aaa;text-transform:uppercase;">Jour</span>
       <span style="font-size:0.75em;font-weight:700;color:#aaa;text-transform:uppercase;text-align:center;">Tmax</span>
       <span style="font-size:0.75em;font-weight:700;color:#aaa;text-transform:uppercase;text-align:center;">Tmin</span>
@@ -1732,26 +1742,39 @@ function genererInputsMeteo() {
     </div>
   `;
   for (let i = 0; i < 7; i++) {
-    const d = new Date(today); d.setDate(today.getDate() + i + 1); // +1 : i=0 → J+1 (demain)
-    const label = i === 0 ? `Demain — J+1` : `${jours[d.getDay()]} — J+${i+1}`;
+    const d = new Date(dateRef); d.setDate(dateRef.getDate() + i + 1); // J+1..J+7 depuis la date d'analyse
+    const isPast   = d < today;
+    const isToday  = d.getTime() === today.getTime();
+    // Badge visuel : données réelles passées / aujourd'hui / prévisions futures
+    const badge = isPast
+      ? `<span style="font-size:0.65em;background:#e8f4fd;color:#1a6b9f;padding:1px 5px;border-radius:10px;font-weight:700;">📊 réel</span>`
+      : isToday
+        ? `<span style="font-size:0.65em;background:#fff8e1;color:#b36800;padding:1px 5px;border-radius:10px;font-weight:700;">📍 auj.</span>`
+        : `<span style="font-size:0.65em;background:#f0f8ee;color:#357a38;padding:1px 5px;border-radius:10px;font-weight:700;">🔮 prévu</span>`;
+    const jourLabel = `${jours[d.getDay()]} J+${i+1}`;
+    // Fond légèrement coloré pour les jours passés (données réelles déjà connues)
+    const rowStyle = isPast
+      ? 'background:#f0f7ff;border-radius:8px;padding:4px 6px;'
+      : isToday ? 'background:#fffdf0;border-radius:8px;padding:4px 6px;' : '';
     html += `
-      <div style="display:grid;grid-template-columns:80px 1fr 1fr 90px;gap:8px;align-items:center;">
-        <span style="font-size:0.85em;font-weight:600;color:var(--rouge);">${label}<br><small style="font-weight:400;color:#aaa;">${d.getDate()}/${d.getMonth()+1}</small></span>
-        <div class="field" style="margin:0;"><label style="font-size:0.75em;">Tmax (°C)</label><input type="number" id="tmax-${i}" placeholder="24" step="0.5" oninput="calculerGDD()"></div>
-        <div class="field" style="margin:0;"><label style="font-size:0.75em;">Tmin (°C)</label><input type="number" id="tmin-${i}" placeholder="14" step="0.5" oninput="calculerGDD()"></div>
-        <div class="field" style="margin:0;"><label style="font-size:0.75em;color:#4a90d9;">Pluie (mm)</label><input type="number" id="pluie-${i}" placeholder="0" step="1" min="0" style="border-color:#4a90d922;"></div>
+      <div style="display:grid;grid-template-columns:110px 1fr 1fr 90px;gap:8px;align-items:center;${rowStyle}">
+        <span style="font-size:0.82em;font-weight:600;color:var(--rouge);">${jourLabel}<br><small style="font-weight:400;color:#aaa;">${d.getDate()}/${d.getMonth()+1}</small><br>${badge}</span>
+        <div class="field" style="margin:0;"><label style="font-size:0.75em;">Tmax (°C)</label><input type="number" id="tmax-${i}" placeholder="24" step="0.5" oninput="calculerGDD()" value="${savedTmax[i]}"></div>
+        <div class="field" style="margin:0;"><label style="font-size:0.75em;">Tmin (°C)</label><input type="number" id="tmin-${i}" placeholder="14" step="0.5" oninput="calculerGDD()" value="${savedTmin[i]}"></div>
+        <div class="field" style="margin:0;"><label style="font-size:0.75em;color:#4a90d9;">Pluie (mm)</label><input type="number" id="pluie-${i}" placeholder="0" step="1" min="0" style="border-color:#4a90d922;" value="${savedPluie[i]}"></div>
       </div>
     `;
   }
   html += '</div>';
   html += `
     <div class="pred-card" style="margin-top:12px;">
-      <div style="font-size:0.82em;color:#888;font-weight:600;margin-bottom:6px;">DEGRÉS-JOURS CUMULÉS SUR 7 JOURS</div>
+      <div style="font-size:0.82em;color:#888;font-weight:600;margin-bottom:6px;">DEGRÉS-JOURS CUMULÉS (J+1 → J+7 depuis la date d'analyse)</div>
       <div style="font-size:1.6em;font-weight:800;color:var(--rouge);" id="gdd-total">— °C·j</div>
-      <div style="font-size:0.75em;color:#999;margin-top:2px;">Σ [(Tmax + Tmin)/2 - 0] pour Tb = 0°C</div>
+      <div style="font-size:0.75em;color:#999;margin-top:2px;">Σ [(Tmax + Tmin)/2] pour Tb = 0°C — données réelles (📊) + prévisions (🔮)</div>
     </div>
   `;
   document.getElementById('meteo-inputs').innerHTML = html;
+  calculerGDD(); // recalculer avec les valeurs restaurées
 }
 
 function calculerGDD() {
