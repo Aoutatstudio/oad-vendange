@@ -1807,7 +1807,11 @@ function calculerPrediction() {
 
   const { criteres: c, appellation: nomApp } = getCriteresParParcelle(parcelle);
   const nomJours = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-  const today = new Date();
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // J+0 = date de l'analyse (pas forcément aujourd'hui)
+  const dateAnalyseInput = document.getElementById('pred-date-analyse')?.value;
+  const dateRef = dateAnalyseInput ? new Date(dateAnalyseInput + 'T00:00:00') : new Date(today);
 
   // GDD et pluviométrie par jour + méteo HTML
   const gddParJour   = [];
@@ -1821,15 +1825,18 @@ function calculerPrediction() {
     gddParJour.push(gddJ);
     pluieParJour.push(pluie);
     if (!isNaN(tmax) && !isNaN(tmin)) {
-      const d = new Date(today); d.setDate(today.getDate() + i + 1); // i=0 → J+1
+      const d = new Date(dateRef); d.setDate(dateRef.getDate() + i + 1); // J+1..J+7 depuis analyse
+      const isPastDay = d < today;
       const icone = pluie >= 10 ? '🌧' : pluie >= 3 ? '🌦' : tmax >= 28 ? '☀️' : tmax >= 22 ? '🌤' : tmax >= 16 ? '⛅' : '🌥';
       const pluieLabel = pluie > 0 ? `<div class="gdd" style="color:#4a90d9;">💧 ${pluie.toFixed(0)} mm</div>` : '';
-      meteoHTML += `<div class="meteo-jour">
+      const realBadge = isPastDay ? `<div style="font-size:0.65em;color:#1a6b9f;font-weight:700;">📊 réel</div>` : '';
+      meteoHTML += `<div class="meteo-jour" style="${isPastDay ? 'background:#f0f7ff;border-radius:8px;' : ''}">
         <div class="jour">J+${i+1} ${nomJours[d.getDay()]}</div>
         <div class="icone">${icone}</div>
         <div class="temp"><span class="tmax">${tmax}°</span> / <span class="tmin">${tmin}°</span></div>
         <div class="gdd">+${gddJ.toFixed(1)} GDD</div>
         ${pluieLabel}
+        ${realBadge}
       </div>`;
     }
   }
