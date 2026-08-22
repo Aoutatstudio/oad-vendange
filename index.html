@@ -2559,15 +2559,17 @@ function chargerDemosPrediction() {
   mettreAJourSelectParcelles();
 
   // Données actuelles (20/08/2025 — Demoiselles 1)
-  document.getElementById('pred-parcelle').value = 'Demoiselles 1';
-  document.getElementById('pred-veraison').value = '2025-07-28';
-  document.getElementById('pred-sucre').value    = '11.5';
-  document.getElementById('pred-at').value       = '5.1';
-  document.getElementById('pred-malique').value  = '2.8';
-  document.getElementById('pred-tartrique').value= '5.2';
-  document.getElementById('pred-mb').value       = '164.6'; // masse baies démo (Demoiselles 1)
-  document.getElementById('pred-aph1').value     = '790';   // Aph1 démo (Demoiselles 1)
-  document.getElementById('pred-do280').value    = '56.9';  // DO 280 démo (optionnel)
+  document.getElementById('pred-parcelle').value     = 'Demoiselles 1';
+  document.getElementById('pred-veraison').value     = '2025-07-28';
+  document.getElementById('pred-date-analyse').value = '2025-08-20'; // J+0 = date de l'analyse
+  document.getElementById('pred-sucre').value        = '11.5';
+  document.getElementById('pred-at').value           = '5.1';
+  document.getElementById('pred-malique').value      = '2.8';
+  document.getElementById('pred-tartrique').value    = '5.2';
+  document.getElementById('pred-mb').value           = '164.6'; // masse baies démo
+  document.getElementById('pred-aph1').value         = '790';   // Aph1 démo
+  document.getElementById('pred-do280').value        = '56.9';  // DO 280 (optionnel)
+  genererInputsMeteo(); // relabelliser les jours depuis la date d'analyse
 
   // Météo simulée (7 jours typiques fin août Bourgogne — avec épisode pluvieux J+4)
   const meteoDemo = [
