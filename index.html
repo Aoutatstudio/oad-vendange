@@ -919,6 +919,11 @@ if (sessionStorage.getItem('oad_auth') === '1') {
       </div>
       <div id="pred-info-derniere-analyse" style="grid-column:1/-1;display:none;padding:8px 12px;background:#e8f4fd;border-left:3px solid #4a90d9;border-radius:6px;font-size:0.82em;color:#2c5f8a;"></div>
       <div class="field">
+        <label>📅 Date de l'analyse (J+0)</label>
+        <input type="date" id="pred-date-analyse" oninput="genererInputsMeteo()">
+        <span class="unit">Pré-remplie depuis le dernier contrôle — la météo sera récupérée depuis cette date</span>
+      </div>
+      <div class="field">
         <label>Date de véraison</label>
         <input type="date" id="pred-veraison">
       </div>
