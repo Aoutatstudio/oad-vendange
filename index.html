@@ -2392,19 +2392,32 @@ async function recupererMeteoAuto() {
   status.style.display = 'none';
 
   try {
-    // forecast_days=8 : index 0 = aujourd'hui (ignoré), index 1..7 = J+1..J+7
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${parcelle.lat}&longitude=${parcelle.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=Europe%2FParis&forecast_days=8`;
+    // Calculer le décalage entre la date d'analyse (J+0) et aujourd'hui
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dateAnalyseInput = document.getElementById('pred-date-analyse')?.value;
+    const dateAnalyse = dateAnalyseInput ? new Date(dateAnalyseInput + 'T00:00:00') : new Date(today);
+    const pastDays = Math.max(0, Math.round((today - dateAnalyse) / 86400000));
+
+    // past_days=N : l'API renvoie N jours de données réelles avant aujourd'hui
+    // + forecast_days jours de prévisions à partir d'aujourd'hui
+    // Index 0 = date d'analyse, index 1..7 = J+1..J+7 (réels puis prévisions)
+    // On a besoin que l'index 7 existe : 7 ≤ pastDays + forecastDays - 1
+    //   → forecastDays = max(1, 8 - pastDays)
+    const forecastDays = Math.max(1, 8 - pastDays);
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${parcelle.lat}&longitude=${parcelle.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=Europe%2FParis&past_days=${pastDays}&forecast_days=${forecastDays}`;
     const res = await fetch(url);
     const data = await res.json();
     const daily = data.daily;
 
-    // i=0 → champ tmax-0 (J+1 dans la grille) → API index 1 (demain)
-    // i=1 → champ tmax-1 (J+2)                → API index 2 (après-demain)  etc.
+    // Mapping : tmax-i ↔ API index (i+1)
+    // Avec past_days=N : index 0 = date analyse (J+0), index 1..7 = J+1..J+7
+    // - jours passés (< today) : données météo réelles mesurées
+    // - jours futurs (≥ today) : prévisions AROME
     for (let i = 0; i < 7; i++) {
       const tmaxEl  = document.getElementById('tmax-'  + i);
       const tminEl  = document.getElementById('tmin-'  + i);
       const pluieEl = document.getElementById('pluie-' + i);
-      const apiIdx  = i + 1; // décalage : on ignore l'index 0 (aujourd'hui)
+      const apiIdx  = i + 1; // J+1..J+7 depuis la date d'analyse
       if (tmaxEl && daily.temperature_2m_max[apiIdx] != null) {
         tmaxEl.value = daily.temperature_2m_max[apiIdx].toFixed(1);
       }
@@ -2417,28 +2430,25 @@ async function recupererMeteoAuto() {
     }
     calculerGDD();
 
-    // Afficher les icônes météo dans les cases
-    for (let i = 0; i < 7; i++) {
-      const wc = daily.weathercode ? daily.weathercode[i] : null;
-      const iconeEl = document.querySelector(`#meteo-inputs .meteo-icone-${i}`);
-      if (iconeEl) iconeEl.textContent = wcodeToIcon(wc, daily.temperature_2m_max[i]);
-    }
-
     status.className = 'meteo-status ok';
     status.style.display = '';
     const commune = parcelle.lieu || '—';
     const cp      = parcelle.cp  || '—';
-    const verifyUrl = `https://api.open-meteo.com/v1/forecast?latitude=${parcelle.lat}&longitude=${parcelle.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=Europe%2FParis&forecast_days=8`;
+    const joursPassesLabel = pastDays > 0
+      ? `<strong>${pastDays} jour${pastDays>1?'s':''} de données réelles</strong> (📊 depuis le ${dateAnalyse.getDate()}/${dateAnalyse.getMonth()+1}) + `
+      : '';
+    const verifyUrl = url;
     status.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <span style="font-size:1.4em;">✅</span>
         <div>
-          <div style="font-weight:700;font-size:1em;">Météo récupérée — J+1 à J+7</div>
+          <div style="font-weight:700;font-size:1em;">Météo récupérée — J+1 à J+7 depuis l'analyse du ${dateAnalyse.getDate()}/${dateAnalyse.getMonth()+1}</div>
           <div style="font-size:0.88em;margin-top:2px;opacity:0.85;">
-            📍 <strong>${commune}</strong>${cp !== '—' ? ` &nbsp;·&nbsp; 📮 ${cp}` : ''}
+            ${joursPassesLabel}🔮 prévisions jusqu'au J+7
+            &nbsp;·&nbsp; 📍 <strong>${commune}</strong>${cp !== '—' ? ` — 📮 ${cp}` : ''}
             &nbsp;·&nbsp; 🌐 ${parcelle.lat.toFixed(4)}°N, ${parcelle.lon.toFixed(4)}°E
             &nbsp;·&nbsp; Source : <a href="https://open-meteo.com" target="_blank" style="color:inherit;font-weight:600;">Open-Meteo</a> / AROME
-            &nbsp;·&nbsp; <a href="${verifyUrl}" target="_blank" style="color:inherit;text-decoration:underline;font-size:0.9em;">🔗 Vérifier les données brutes (JSON)</a>
+            &nbsp;·&nbsp; <a href="${verifyUrl}" target="_blank" style="color:inherit;text-decoration:underline;font-size:0.9em;">🔗 Données brutes (JSON)</a>
           </div>
         </div>
       </div>`;
