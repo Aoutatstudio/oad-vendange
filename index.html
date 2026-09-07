@@ -2055,8 +2055,13 @@ function calculerPrediction() {
     // Avertissements garde-fous
     const warnShort  = d.shortWindow
       ? `<span title="Fenêtre de moins de 5 jours : les modèles ont été calibrés sur des fenêtres de 5 à 8 jours. Projection indicative." style="cursor:help;color:#999;">⚠</span>` : '';
+    // Raisons détaillées du dépassement de domaine
+    const domainReasons = [];
+    if (d.outDomainP)   domainReasons.push(`P = ${pluieTotal.toFixed(0)} mm (domaine : 7–101 mm)`);
+    if (d.outDomainGDD) domainReasons.push(`GDD0 = ${gddTotal.toFixed(1)} °C·j (domaine : 90–152 °C·j)`);
+    const domainTitle = `Conditions hors domaine de calibration : ${domainReasons.join(' ; ')}. Projection à interpréter avec prudence.`;
     const warnDomain = d.outDomain
-      ? `<br><small style="color:#c0392b;font-size:0.72em;font-weight:600;" title="Conditions météorologiques hors du domaine de calibration du modèle — projection à interpréter avec prudence.">⚠ hors domaine</small>` : '';
+      ? `<br><small style="color:#c0392b;font-size:0.72em;font-weight:600;cursor:help;" title="${domainTitle}">⚠ hors domaine (${domainReasons.join(', ')})</small>` : '';
 
     // Masse des baies — valeur centrale [borne basse – borne haute]
     const mbStyleOuter = d.shortWindow ? 'color:#aaa;font-style:italic;' : '';
