@@ -1883,18 +1883,30 @@ function calculerPrediction() {
   //   sans coefficients quantitatifs validés → indicateur qualitatif uniquement.
   // =========================================================================
 
-  // EA% J0 (état actuel) — même chaîne que les projections, sans correction pluie
-  const aph35_j0 = !isNaN(mb0) ? Math.max(0, -2.56 * mb0 + 1055) : null;
-  const ea_j0 = (aph35_j0 !== null && !isNaN(aph1_0) && aph1_0 > 0)
-    ? Math.max(0, Math.min(100, ((aph1_0 - aph35_j0) / aph1_0) * 100))
+  // ── Nouveau modèle calibré millésime 2025 ────────────────────────────────
+  // MB et Aph3,5 prédits INDÉPENDAMMENT depuis la météo (Boulay 2025, 24 intervalles, 10 parcelles)
+  //   ΔMB (%)    = +39,16 + 0,1484×P − 0,40586×GDD0   R²=0,32
+  //   ΔAph35 (%) = −69,44 − 0,2179×P + 0,75492×GDD0   R²=0,25
+  //   P = cumul précip. fenêtre (mm) ; GDD0 = degrés-jours base 0 °C (même base TAVP/malique)
+  //   Domaine calibration : P∈[7;101] mm, GDD0∈[90;152] °C·j, fenêtres 5–8 j
+  //   Bornes : ΔMB ∈ [−25%;+35%], ΔAph35 ∈ [−30%;+80%]
+  //   Coefficients IC95% : pluie_MB [−0,0001;+0,3159], GDD0_MB [−1,1838;−0,3069]
+  //                        pluie_Aph35 [−0,3725;−0,0673], GDD0_Aph35 [+0,4796;+1,5476]
+  // TAVP (+0,008/GDD), MH₂ (−0,004/GDD), TH₂ stable : inchangés (littérature)
+  // ─────────────────────────────────────────────────────────────────────────
+  const aph35_0 = parseFloat(document.getElementById('pred-aph35')?.value);
+
+  // EA% J0 — calculé depuis les valeurs mesurées
+  const ea_j0 = (!isNaN(aph35_0) && !isNaN(aph1_0) && aph1_0 > 0)
+    ? Math.max(0, Math.min(100, ((aph1_0 - aph35_0) / aph1_0) * 100))
     : null;
 
   let gddCumul = 0;
   const projections = [];
   for (let j = 1; j <= 7; j++) {
-    gddCumul      += gddParJour[j-1];
-    const pluie    = pluieParJour[j-1];
-    const date     = new Date(dateRef); date.setDate(dateRef.getDate() + j); // dates depuis l'analyse
+    gddCumul   += gddParJour[j-1];
+    const date  = new Date(dateRef); date.setDate(dateRef.getDate() + j);
+    const pluie = pluieParJour[j-1]; // précip du jour seul (affichage carte météo)
 
     // TAVP [Coombe 1992 ; Ribéreau-Gayon et al. 2012]
     const tavp = tavp0 + gddCumul * 0.008;
@@ -1902,45 +1914,67 @@ function calculerPrediction() {
     // MH₂ [Kliewer 1977 ; Sweetman et al. 2009]
     const malique = !isNaN(malique0) ? Math.max(0.3, malique0 - gddCumul * 0.004) : null;
 
-    // TH₂ — stable post-véraison [Coombe 1992]
+    // TH₂ stable post-véraison [Coombe 1992]
     const tartrique = !isNaN(tartrique0) ? tartrique0 : null;
 
-    // AT — dérivée de ΔMH₂ (ΔAT ≈ 0.67 × ΔMH₂) [Ribéreau-Gayon et al. 2012]
+    // AT dérivée de ΔMH₂ [Ribéreau-Gayon et al. 2012]
     const at = malique !== null
       ? Math.max(2.0, at0 - gddCumul * 0.004 * 0.67)
-      : Math.max(2.0, at0 - gddCumul * 0.002);   // tendance indicative si MH₂ absent
+      : Math.max(2.0, at0 - gddCumul * 0.002);
 
-    // -----------------------------------------------------------------------
-    // MASSE DES BAIES — correction pluviométrique (Ojeda et al. 2002, AJVE)
-    // Stress hydrique post-véraison S3 → baies à 85 % du poids témoin (−15 %)
-    // Symétrique : apport hydrique → gonflement osmotique → + MB → dilution.
-    // Ramos et al. (2020, Sci. Hortic.) : eau disponible en fin de maturation
-    //   ↑ poids baie, ↓ anthocyanes et polyphénols totaux.
-    // Coefficient retenu : + 0,15 % MB / mm de pluie cumulée (plafond + 15 %).
-    // Note : l'effet inverse (sécheresse → concentration) n'est pas modélisé
-    //   sur 7 jours faute de données de bilan hydrique du sol — MB stable sans pluie.
-    // -----------------------------------------------------------------------
-    const pluieCumul_j = pluieParJour.slice(0, j).reduce((a, b) => a + b, 0);
-    const deltaRain    = Math.min(0.15, pluieCumul_j * 0.0015); // coefficient Ojeda 2002
-    const mb = !isNaN(mb0) ? mb0 * (1 + deltaRain) : null;
+    // ── Cumuls météo sur la fenêtre J+1..J+j ──────────────────────────────
+    const P_j    = pluieParJour.slice(0, j).reduce((a, b) => a + b, 0);
+    const GDD0_j = gddParJour  .slice(0, j).reduce((a, b) => a + b, 0);
 
-    // Aph3,5 via régression (MB corrigée pluie) — Bourgogne Pinot Noir, R²=0,48
-    //   Aph3,5 = −2,56 × MB + 1055
-    // Pluie → MB ↑ → Aph3,5 ↓ (dilution anthocyanes)
-    const aph35Proj = mb !== null ? Math.max(0, -2.56 * mb + 1055) : null;
+    // ── MB — valeur centrale + bornes IC95% ───────────────────────────────
+    const deltaMB_cent = 39.16 + 0.1484    * P_j - 0.40586 * GDD0_j;
+    const deltaMB_low  = 39.16 + (-0.0001) * P_j - 1.1838  * GDD0_j; // borne basse
+    const deltaMB_high = 39.16 + 0.3159    * P_j - 0.3069  * GDD0_j; // borne haute
+    const deltaMB_cent_c = Math.min(35, Math.max(-25, deltaMB_cent));
+    const deltaMB_low_c  = Math.min(35, Math.max(-25, deltaMB_low ));
+    const deltaMB_high_c = Math.min(35, Math.max(-25, deltaMB_high));
+    const mbClipped = Math.abs(deltaMB_cent - deltaMB_cent_c) > 0.01;
+    const mb     = !isNaN(mb0) ? mb0 * (1 + deltaMB_cent_c / 100) : null;
+    const mb_low = !isNaN(mb0) ? mb0 * (1 + deltaMB_low_c  / 100) : null;
+    const mb_hi  = !isNaN(mb0) ? mb0 * (1 + deltaMB_high_c / 100) : null;
 
-    // EA% = ((Aph1 − Aph3,5) / Aph1) × 100  [formule Glories]
-    // Aph1 supposée stable sur 7 j (anthocyanes totaux en conditions très acides —
-    //   moins sensibles aux variations de l'état hydrique que la fraction extractable).
-    // Pluie → Aph3,5 ↓ → EA% ↑ = extractibilité qui se dégrade. Direction correcte.
-    const ea = (aph35Proj !== null && !isNaN(aph1_0) && aph1_0 > 0)
-      ? Math.max(0, Math.min(100, ((aph1_0 - aph35Proj) / aph1_0) * 100))
-      : null;
-    const mp = null; // non projeté (nécessite DO280 mesuré simultanément)
-    // Flag : EA% à confirmer par analyse terrain après pluie significative
-    const mpIncertain = pluieCumul_j >= 10;
+    // ── Aph3,5 — valeur centrale + bornes IC95% ───────────────────────────
+    const deltaAph_cent = -69.44 + (-0.2179) * P_j + 0.75492 * GDD0_j;
+    const deltaAph_low  = -69.44 + (-0.3725) * P_j + 0.4796  * GDD0_j; // borne basse
+    const deltaAph_high = -69.44 + (-0.0673) * P_j + 1.5476  * GDD0_j; // borne haute
+    const deltaAph_cent_c = Math.min(80, Math.max(-30, deltaAph_cent));
+    const deltaAph_low_c  = Math.min(80, Math.max(-30, deltaAph_low ));
+    const deltaAph_high_c = Math.min(80, Math.max(-30, deltaAph_high));
+    const aph35Clipped = Math.abs(deltaAph_cent - deltaAph_cent_c) > 0.01;
+    const aph35Proj     = !isNaN(aph35_0) ? aph35_0 * (1 + deltaAph_cent_c / 100) : null;
+    const aph35Proj_low = !isNaN(aph35_0) ? aph35_0 * (1 + deltaAph_low_c  / 100) : null;
+    const aph35Proj_hi  = !isNaN(aph35_0) ? aph35_0 * (1 + deltaAph_high_c / 100) : null;
 
-    projections.push({ j, date, gddCumul, pluie, pluieCumul: pluieCumul_j, deltaRain, tavp, at, malique, tartrique, mb, aph35Proj, ea, mp, mpIncertain });
+    // ── EA% (formule Glories) — Aph1 stable, Aph3,5 prédite ──────────────
+    const ea     = (aph35Proj     !== null && !isNaN(aph1_0) && aph1_0 > 0)
+      ? Math.max(0, Math.min(100, ((aph1_0 - aph35Proj    ) / aph1_0) * 100)) : null;
+    // Aph35 élevée → EA% faible et vice-versa, donc:
+    const ea_low = (aph35Proj_hi  !== null && !isNaN(aph1_0) && aph1_0 > 0)
+      ? Math.max(0, Math.min(100, ((aph1_0 - aph35Proj_hi ) / aph1_0) * 100)) : null;
+    const ea_hi  = (aph35Proj_low !== null && !isNaN(aph1_0) && aph1_0 > 0)
+      ? Math.max(0, Math.min(100, ((aph1_0 - aph35Proj_low) / aph1_0) * 100)) : null;
+
+    // ── Garde-fous ────────────────────────────────────────────────────────
+    const shortWindow  = j < 5; // calibration sur fenêtres 5–8 j
+    const outDomainP   = P_j < 7 || P_j > 101;
+    const outDomainGDD = GDD0_j < 90 || GDD0_j > 152;
+    const outDomain    = outDomainP || outDomainGDD;
+
+    const mp = null; // non projeté
+
+    projections.push({
+      j, date, gddCumul, pluie, P_j, GDD0_j,
+      tavp, at, malique, tartrique,
+      mb, mb_low, mb_hi, mbClipped,
+      aph35Proj, aph35Proj_low, aph35Proj_hi, aph35Clipped,
+      ea, ea_low, ea_hi,
+      mp, shortWindow, outDomain, outDomainP, outDomainGDD
+    });
   }
 
   // Badge helper : évalue val dans [min, max] avec cible selon dir
