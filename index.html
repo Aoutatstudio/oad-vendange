@@ -2528,7 +2528,8 @@ async function recupererMeteoAuto() {
   } catch(e) {
     status.className = 'meteo-status err';
     status.style.display = '';
-    status.textContent = '❌ Erreur lors de la récupération météo. Vérifiez votre connexion internet.';
+    status.textContent = `❌ Erreur météo : ${e.message || e}. Vérifiez votre connexion internet et la fiche parcelle (code postal valide ?).`;
+    console.error('[OAD météo]', e);
   }
 
   btn.innerHTML = '🌤 Actualiser la météo';
