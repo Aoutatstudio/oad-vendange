@@ -2132,14 +2132,15 @@ function calculerPrediction() {
       </div>
 
       <div style="margin-top:10px;font-size:0.78em;color:#555;background:#F0E6FF;border-radius:6px;padding:8px 12px;border-left:3px solid #6A0DAD;">
-        ★ <strong>Correction pluviométrique de la masse des baies</strong> (Ojeda et al. 2002, <em>Am. J. Enol. Vitic.</em>, 526 citations) :
-        stress hydrique post-véraison → baies à <strong>85 % du poids témoin (−15 %)</strong>. Coefficient appliqué par symétrie :
-        <strong>+0,15 % MB par mm de pluie cumulée</strong>, plafonné à +15 %
-        (Ramos et al. 2020, <em>Sci. Hortic.</em> ; Pérez-Álvarez et al. 2021, <em>Agric. Water Manag.</em>).
-        Pluie → MB ↑ → Aph3,5 ↓ (régression) → <strong>EA% ↑</strong> = extractibilité qui se dégrade.
-        Chaîne complète : <em>Aph3,5 = −2,56 × MB + 1055</em>, puis <em>EA% = (Aph1 − Aph3,5) / Aph1 × 100</em>.
-        <strong>Aph1 supposée stable</strong> sur 7 j (anthocyanes totaux en conditions très acides — moins sensibles à l'état hydrique de la baie).
-        Après ≥ 10 mm cumulés : <strong>⚠ analyser après pluie</strong> — remettre à jour MB et Aph1.
+        ★ <strong>Modèles MB et Aph3,5 recalibrés (Boulay 2025)</strong> : MB et Aph3,5 sont prédits indépendamment à partir des cumuls météo de la fenêtre.
+        <em>ΔMB (%) = +39,16 + 0,1484×P − 0,40586×GDD0</em> (R²=0,32) ·
+        <em>ΔAph35 (%) = −69,44 − 0,2179×P + 0,75492×GDD0</em> (R²=0,25).
+        P = précipitations cumulées (mm) ; GDD0 = degrés-jours base 0 °C (même base que TAVP et malique).
+        Les valeurs entre crochets [borne basse – borne haute] reflètent les intervalles de confiance à 95 % des coefficients.
+        Bornes d'écrêtage : ΔMB ∈ [−25 % ; +35 %], ΔAph35 ∈ [−30 % ; +80 %].
+        <strong>⚠ J+1 à J+4</strong> : fenêtre inférieure aux 5–8 j de calibration — projection indicative (valeurs en gris italique).
+        Hors domaine [P∉7–101 mm ou GDD0∉90–152 °C·j] : avertissement affiché.
+        <strong>Aph1 supposée stable</strong> sur 7 j · EA% = (Aph1 − Aph3,5_prédite) / Aph1 × 100.
       </div>
 
       <div style="margin-top:12px;font-size:0.78em;color:#666;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;">
