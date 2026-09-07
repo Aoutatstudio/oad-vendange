@@ -2097,8 +2097,9 @@ function calculerPrediction() {
     <td style="padding:6px 10px;text-align:center;">${at0.toFixed(1)}</td>
     <td style="padding:6px 10px;text-align:center;">${!isNaN(malique0)  ? malique0.toFixed(1)  : '—'}</td>
     <td style="padding:6px 10px;text-align:center;">${!isNaN(tartrique0)? tartrique0.toFixed(1): '—'}</td>
-    <td style="padding:6px 10px;text-align:center;">${!isNaN(mb0)     ? mb0.toFixed(1)+' g'     : '—'}</td>
-    <td style="padding:6px 10px;text-align:center;">${ea_j0 !== null  ? ea_j0.toFixed(0)+'%'  : '—'}<br><small style="color:#aaa;font-size:0.75em;">${!isNaN(aph35_0) ? 'Aph3,5='+Math.round(aph35_0)+' mg/L' : ''}</small></td>
+    <td style="padding:6px 10px;text-align:center;">${!isNaN(mb0)     ? mb0.toFixed(1)+' g'          : '—'}</td>
+    <td style="padding:6px 10px;text-align:center;">${!isNaN(aph35_0) ? Math.round(aph35_0)+' mg/L' : '—'}</td>
+    <td style="padding:6px 10px;text-align:center;">${ea_j0 !== null  ? ea_j0.toFixed(0)+'%'         : '—'}</td>
     <td style="padding:6px 10px;text-align:center;">📍</td>
   </tr>`;
 
