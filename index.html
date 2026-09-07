@@ -2061,11 +2061,18 @@ function calculerPrediction() {
       ? `<span style="${mbStyleOuter}">${d.mb.toFixed(1)} g ${warnShort}<br><small style="color:#888;font-size:0.75em;">[${d.mb_low.toFixed(1)}–${d.mb_hi.toFixed(1)}]</small>${mbClipNote}</span>${warnDomain}`
       : '—';
 
+    // Aph3,5 prédite — valeur centrale [borne basse – borne haute]
+    const aph35StyleOuter = d.shortWindow ? 'color:#aaa;font-style:italic;' : '';
+    const aph35ClipNote   = d.aph35Clipped ? `<br><small style="color:#888;font-size:0.7em;">écrêté</small>` : '';
+    const bAph35 = predBadge(d.aph35Proj, c.aph35_min, c.aph35_cible, c.aph35_max, 'up');
+    const aph35Cell = d.aph35Proj !== null
+      ? `<span style="${aph35StyleOuter}">${Math.round(d.aph35Proj)} ${b(bAph35.cls, bAph35.txt)} ${warnShort}<br><small style="color:#888;font-size:0.75em;">[${Math.round(d.aph35Proj_low)}–${Math.round(d.aph35Proj_hi)}]</small>${aph35ClipNote}</span>${warnDomain}`
+      : '—';
+
     // EA% — valeur centrale [borne basse – borne haute]
     const eaStyleOuter = d.shortWindow ? 'color:#aaa;font-style:italic;' : '';
-    const aph35ClipNote = d.aph35Clipped ? `<br><small style="color:#888;font-size:0.7em;">écrêté</small>` : '';
     const eaCell = d.ea !== null
-      ? `<span style="${eaStyleOuter}">${d.ea.toFixed(0)}% ${b(bEa.cls, bEa.txt)} ${warnShort}<br><small style="color:#888;font-size:0.75em;">[${d.ea_low !== null ? d.ea_low.toFixed(0) : '—'}–${d.ea_hi !== null ? d.ea_hi.toFixed(0) : '—'}]%</small>${aph35ClipNote}</span>${warnDomain}`
+      ? `<span style="${eaStyleOuter}">${d.ea.toFixed(0)}% ${b(bEa.cls, bEa.txt)} ${warnShort}<br><small style="color:#888;font-size:0.75em;">[${d.ea_low !== null ? d.ea_low.toFixed(0) : '—'}–${d.ea_hi !== null ? d.ea_hi.toFixed(0) : '—'}]%</small></span>${warnDomain}`
       : '—';
 
     return `<tr style="${rowBg}">
@@ -2076,6 +2083,7 @@ function calculerPrediction() {
       <td style="padding:8px 10px;text-align:center;">${malCell}</td>
       <td style="padding:8px 10px;text-align:center;">${tartCell}</td>
       <td style="padding:8px 10px;text-align:center;">${mbCell}</td>
+      <td style="padding:8px 10px;text-align:center;">${aph35Cell}</td>
       <td style="padding:8px 10px;text-align:center;">${eaCell}</td>
       <td style="padding:8px 10px;text-align:center;">${verdictIco}</td>
     </tr>`;
