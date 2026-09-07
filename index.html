@@ -2044,22 +2044,28 @@ function calculerPrediction() {
       rowBg = 'background:rgba(245,159,0,0.05)';
     }
 
-    const pluieCell = d.pluie > 0 ? `<br><small style="color:#4a90d9;font-weight:400;">🌧 ${d.pluie.toFixed(0)} mm${d.pluie >= 10 ? ' ⚠' : ''}</small>` : '';
+    const pluieCell = d.pluie > 0 ? `<br><small style="color:#4a90d9;font-weight:400;">🌧 ${d.pluie.toFixed(0)} mm</small>` : '';
     const malCell   = d.malique   !== null ? `${d.malique.toFixed(1)} ${b(bMal.cls, bMal.txt)}`   : '—';
     const tartCell  = d.tartrique !== null ? `${d.tartrique.toFixed(1)} ${b(bTart.cls, bTart.txt)}` : '—';
-    // Masse baies : corrigée par la pluie cumulée (Ojeda et al. 2002)
-    const mbDelta = d.mb !== null && !isNaN(mb0) && mb0 > 0 ? ((d.mb - mb0) / mb0 * 100) : 0;
+
+    // Avertissements garde-fous
+    const warnShort  = d.shortWindow
+      ? `<span title="Fenêtre de moins de 5 jours : les modèles ont été calibrés sur des fenêtres de 5 à 8 jours. Projection indicative." style="cursor:help;color:#999;">⚠</span>` : '';
+    const warnDomain = d.outDomain
+      ? `<br><small style="color:#c0392b;font-size:0.72em;font-weight:600;" title="Conditions météorologiques hors du domaine de calibration du modèle — projection à interpréter avec prudence.">⚠ hors domaine</small>` : '';
+
+    // Masse des baies — valeur centrale [borne basse – borne haute]
+    const mbStyleOuter = d.shortWindow ? 'color:#aaa;font-style:italic;' : '';
+    const mbClipNote   = d.mbClipped ? `<br><small style="color:#888;font-size:0.7em;">écrêté</small>` : '';
     const mbCell = d.mb !== null
-      ? `${d.mb.toFixed(1)} g${
-          mbDelta >= 3 ? `<br><small style="color:#c0392b;font-size:0.78em;font-weight:600;">🌧 +${mbDelta.toFixed(0)}% dilution</small>` :
-          mbDelta >= 1 ? `<br><small style="color:#4a90d9;font-size:0.78em;">🌧 +${mbDelta.toFixed(0)}% gonflement</small>` :
-          ''}`
+      ? `<span style="${mbStyleOuter}">${d.mb.toFixed(1)} g ${warnShort}<br><small style="color:#888;font-size:0.75em;">[${d.mb_low.toFixed(1)}–${d.mb_hi.toFixed(1)}]</small>${mbClipNote}</span>${warnDomain}`
       : '—';
-    // EA% projeté (MB → Aph3,5 via régression, Aph1 stable → EA% = (Aph1−Aph3,5)/Aph1×100)
+
+    // EA% — valeur centrale [borne basse – borne haute]
+    const eaStyleOuter = d.shortWindow ? 'color:#aaa;font-style:italic;' : '';
+    const aph35ClipNote = d.aph35Clipped ? `<br><small style="color:#888;font-size:0.7em;">écrêté</small>` : '';
     const eaCell = d.ea !== null
-      ? `${d.ea.toFixed(0)}% ${b(bEa.cls, bEa.txt)}${d.mpIncertain
-          ? `<br><small style="color:#c0392b;font-size:0.75em;font-weight:600;">⚠ analyser après pluie</small>`
-          : ''}`
+      ? `<span style="${eaStyleOuter}">${d.ea.toFixed(0)}% ${b(bEa.cls, bEa.txt)} ${warnShort}<br><small style="color:#888;font-size:0.75em;">[${d.ea_low !== null ? d.ea_low.toFixed(0) : '—'}–${d.ea_hi !== null ? d.ea_hi.toFixed(0) : '—'}]%</small>${aph35ClipNote}</span>${warnDomain}`
       : '—';
 
     return `<tr style="${rowBg}">
