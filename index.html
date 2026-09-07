@@ -1961,8 +1961,12 @@ function calculerPrediction() {
 
     // ── Garde-fous ────────────────────────────────────────────────────────
     const shortWindow  = j < 5; // calibration sur fenêtres 5–8 j
-    const outDomainP   = P_j < 7 || P_j > 101;
-    const outDomainGDD = GDD0_j < 90 || GDD0_j > 152;
+    // Domaine météo : check sur les totaux de la FENÊTRE COMPLÈTE (7 j)
+    // car [7–101 mm] et [90–152 °C·j] sont des plages calibrées sur 7 j,
+    // pas sur des sous-fenêtres — appliquer aux cumuls journaliers ferait
+    // sortir systématiquement les premiers jours du domaine.
+    const outDomainP   = pluieTotal < 7 || pluieTotal > 101;
+    const outDomainGDD = gddTotal   < 90 || gddTotal   > 152;
     const outDomain    = outDomainP || outDomainGDD;
 
     const mp = null; // non projeté
