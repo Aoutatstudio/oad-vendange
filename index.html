@@ -1386,6 +1386,7 @@ function bindPredParcelle() {
         set('pred-tartrique',   derniere.tartrique!=null? derniere.tartrique.toFixed(2): null);
         set('pred-mb',          derniere.mBaies != null ? derniere.mBaies.toFixed(1)  : null);
         set('pred-aph1',        derniere.aph1   != null ? Math.round(derniere.aph1)   : null);
+        set('pred-aph35',       derniere.aph35  != null ? Math.round(derniere.aph35)  : null);
         set('pred-do280',       derniere.do280  != null ? derniere.do280.toFixed(1)   : null);
         set('pred-date-analyse', derniere.date  || null); // date du contrôle → J+0 du modèle
         genererInputsMeteo(); // recalculer les labels météo depuis la nouvelle date d'analyse
@@ -2573,6 +2574,7 @@ function chargerDemosPrediction() {
   document.getElementById('pred-tartrique').value    = '5.2';
   document.getElementById('pred-mb').value           = '164.6'; // masse baies démo
   document.getElementById('pred-aph1').value         = '790';   // Aph1 démo
+  document.getElementById('pred-aph35').value        = '600';   // Aph3,5 démo (cas test mémoire)
   document.getElementById('pred-do280').value        = '56.9';  // DO 280 (optionnel)
   genererInputsMeteo(); // relabelliser les jours depuis la date d'analyse
 
