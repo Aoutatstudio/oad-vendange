@@ -1046,6 +1046,64 @@ if (sessionStorage.getItem('oad_auth') === '1') {
 
 </main>
 
+<!-- MODALE ÉDITION PARCELLE -->
+<div id="edit-parcelle-modal" onclick="if(event.target===this)fermerEditParcelle()">
+  <div class="modal-box" style="max-width:500px;">
+    <div class="modal-header">
+      <div>
+        <h2>✏️ Modifier la parcelle</h2>
+        <div class="sub" id="edit-parcelle-sub">—</div>
+      </div>
+      <button class="modal-close" onclick="fermerEditParcelle()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-parc-idx">
+      <div class="form-grid">
+        <div class="field">
+          <label>Nom de la parcelle</label>
+          <input type="text" id="edit-parc-nom">
+        </div>
+        <div class="field">
+          <label>Appellation</label>
+          <input type="text" id="edit-parc-appellation" list="appellation-list">
+        </div>
+        <div class="field">
+          <label>Cépage</label>
+          <select id="edit-parc-cepage">
+            <option value="Pinot Noir">Pinot Noir</option>
+            <option value="Chardonnay">Chardonnay</option>
+            <option value="Aligoté">Aligoté</option>
+            <option value="Gamay">Gamay</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Code postal</label>
+          <input type="text" id="edit-parc-cp" maxlength="5" pattern="[0-9]{5}">
+        </div>
+        <div class="field">
+          <label>Commune / Lieu-dit</label>
+          <input type="text" id="edit-parc-lieu">
+        </div>
+        <div class="field">
+          <label>Surface (ha)</label>
+          <input type="number" id="edit-parc-surface" step="0.01" min="0" placeholder="0.50">
+        </div>
+      </div>
+      <div style="margin-top:10px;padding:10px 14px;background:var(--bg2);border-radius:8px;border:1px solid var(--border);">
+        <div style="font-size:0.82em;color:#888;margin-bottom:8px;">📍 <strong>Coordonnées GPS</strong> — laisser vide pour géocoder automatiquement depuis le CP</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="field" style="margin:0;"><label>Latitude</label><input type="number" id="edit-parc-lat" step="0.0001" placeholder="ex: 47.2224"></div>
+          <div class="field" style="margin:0;"><label>Longitude</label><input type="number" id="edit-parc-lon" step="0.0001" placeholder="ex: 5.0038"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn" id="edit-parc-save-btn" onclick="sauvegarderEditionParcelle()" style="flex:1;">💾 Enregistrer</button>
+        <button onclick="fermerEditParcelle()" style="flex:0.4;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg2);cursor:pointer;font-size:0.9em;">Annuler</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODALE ANALYSE COMPLÈTE -->
 <div id="analyse-modal" onclick="if(event.target===this)fermerModal()">
   <div class="modal-box">
