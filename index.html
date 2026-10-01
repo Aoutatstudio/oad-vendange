@@ -1309,6 +1309,73 @@ function supprimerParcelle(i) {
   renderParcelles();
 }
 
+function editerParcelle(i) {
+  const p = state.parcelles[i];
+  if (!p) return;
+  document.getElementById('edit-parc-idx').value = i;
+  document.getElementById('edit-parcelle-sub').textContent = p.nom;
+  document.getElementById('edit-parc-nom').value         = p.nom         || '';
+  document.getElementById('edit-parc-appellation').value = p.appellation || '';
+  document.getElementById('edit-parc-cepage').value      = p.cepage      || 'Pinot Noir';
+  document.getElementById('edit-parc-cp').value          = p.cp          || '';
+  document.getElementById('edit-parc-lieu').value        = p.lieu        || '';
+  document.getElementById('edit-parc-surface').value     = (p.surface && p.surface !== '—') ? p.surface : '';
+  document.getElementById('edit-parc-lat').value         = p.lat != null ? p.lat : '';
+  document.getElementById('edit-parc-lon').value         = p.lon != null ? p.lon : '';
+  document.getElementById('edit-parcelle-modal').classList.add('open');
+}
+
+function fermerEditParcelle() {
+  document.getElementById('edit-parcelle-modal').classList.remove('open');
+}
+
+async function sauvegarderEditionParcelle() {
+  const i = parseInt(document.getElementById('edit-parc-idx').value);
+  const p = state.parcelles[i];
+  if (!p) return;
+
+  const nom = document.getElementById('edit-parc-nom').value.trim();
+  if (!nom) { alert('Le nom ne peut pas être vide.'); return; }
+
+  const newCp    = document.getElementById('edit-parc-cp').value.trim();
+  const newLieu  = document.getElementById('edit-parc-lieu').value.trim();
+  const latVal   = parseFloat(document.getElementById('edit-parc-lat').value);
+  const lonVal   = parseFloat(document.getElementById('edit-parc-lon').value);
+
+  const cpChanged   = newCp   !== (p.cp   || '');
+  const lieuChanged = newLieu !== (p.lieu  || '');
+
+  // Si le nom change → migrer les analyses associées
+  const ancienNom = p.nom;
+  if (nom !== ancienNom && state.analyses[ancienNom]) {
+    state.analyses[nom] = state.analyses[ancienNom];
+    delete state.analyses[ancienNom];
+  }
+
+  p.nom         = nom;
+  p.appellation = document.getElementById('edit-parc-appellation').value.trim();
+  p.cepage      = document.getElementById('edit-parc-cepage').value;
+  p.cp          = newCp;
+  p.lieu        = newLieu;
+  p.surface     = document.getElementById('edit-parc-surface').value || '—';
+
+  // GPS : coordonnées manuelles > géocodage auto si CP/lieu changé ou absent
+  if (!isNaN(latVal) && !isNaN(lonVal)) {
+    p.lat = latVal; p.lon = lonVal;
+  } else if (cpChanged || lieuChanged || !p.lat) {
+    const btn = document.getElementById('edit-parc-save-btn');
+    btn.textContent = '⏳ Géolocalisation…'; btn.disabled = true;
+    const coords = await geocoderCommune(newCp, newLieu);
+    btn.textContent = '💾 Enregistrer'; btn.disabled = false;
+    if (coords) { p.lat = coords.lat; p.lon = coords.lon; }
+  }
+
+  sauvegarder();
+  fermerEditParcelle();
+  mettreAJourSelectParcelles();
+  renderParcelles();
+}
+
 function toggleHistorique(idx) {
   const panel = document.getElementById('histo-panel-' + idx);
   const btn   = document.getElementById('btn-histo-'   + idx);
