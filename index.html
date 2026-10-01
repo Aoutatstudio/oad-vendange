@@ -1292,6 +1292,7 @@ function renderParcelles() {
           <button id="btn-histo-${i}" class="btn-histo" onclick="toggleHistorique(${i})">
             📋 ${nb > 0 ? nb + ' analyse' + (nb > 1 ? 's' : '') : 'Historique'}
           </button>
+          <button onclick="editerParcelle(${i})" style="background:none;border:none;cursor:pointer;font-size:1.2em;" title="Modifier">✏️</button>
           <button onclick="supprimerParcelle(${i})" style="background:none;border:none;cursor:pointer;font-size:1.2em;color:#CCC;">🗑️</button>
         </div>
       </div>
