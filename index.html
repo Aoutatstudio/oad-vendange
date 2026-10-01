@@ -1502,51 +1502,78 @@ function supprimerAnalyse(parcIdx, anaIdx) {
   if (btn) btn.textContent = `📋 ${nb > 0 ? nb + ' analyse' + (nb > 1 ? 's' : '') : 'Historique'}`;
 }
 
-function bindPredParcelle() {
-  const sel = document.getElementById('pred-parcelle');
-  if (sel) {
-    sel.onchange = () => {
-      // Reset météo status
-      const status = document.getElementById('meteo-status');
-      if (status) { status.className = 'meteo-status'; status.style.display = 'none'; }
-      const btn = document.getElementById('btn-meteo-auto');
-      if (btn) btn.innerHTML = '🌤 Récupérer la météo automatiquement';
-      // Réinitialiser les champs météo
-      for (let i = 0; i < 7; i++) {
-        const tm = document.getElementById('tmax-' + i);
-        const tn = document.getElementById('tmin-' + i);
-        if (tm) tm.value = '';
-        if (tn) tn.value = '';
-      }
-      if (document.getElementById('gdd-total')) document.getElementById('gdd-total').textContent = '— °C·j';
+function remplirDepuisAnalyse(a) {
+  if (!a) return;
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
+  // Réinitialiser les champs météo
+  const status = document.getElementById('meteo-status');
+  if (status) { status.className = 'meteo-status'; status.style.display = 'none'; }
+  const btn = document.getElementById('btn-meteo-auto');
+  if (btn) btn.innerHTML = '🌤 Récupérer la météo automatiquement';
+  for (let i = 0; i < 7; i++) {
+    const tm = document.getElementById('tmax-' + i);
+    const tn = document.getElementById('tmin-' + i);
+    if (tm) tm.value = '';
+    if (tn) tn.value = '';
+  }
+  if (document.getElementById('gdd-total')) document.getElementById('gdd-total').textContent = '— °C·j';
+  // Remplir les champs depuis l'analyse choisie
+  set('pred-sucre',        a.tavp      != null ? a.tavp.toFixed(2)       : null);
+  set('pred-at',           a.at        != null ? a.at.toFixed(2)         : null);
+  set('pred-malique',      a.malique   != null ? a.malique.toFixed(2)    : null);
+  set('pred-tartrique',    a.tartrique != null ? a.tartrique.toFixed(2)  : null);
+  set('pred-mb',           a.mBaies    != null ? a.mBaies.toFixed(1)     : null);
+  set('pred-aph1',         a.aph1      != null ? Math.round(a.aph1)      : null);
+  set('pred-aph35',        a.aph35     != null ? Math.round(a.aph35)     : null);
+  set('pred-do280',        a.do280     != null ? a.do280.toFixed(1)      : null);
+  set('pred-date-analyse', a.date || null);
+  genererInputsMeteo();
+  const infoEl = document.getElementById('pred-info-derniere-analyse');
+  if (infoEl) {
+    const dateLabel = a.date ? new Date(a.date + 'T12:00:00').toLocaleDateString('fr-FR') : a.date;
+    infoEl.style.display = 'block';
+    infoEl.innerHTML = `📋 Données pré-remplies depuis l'analyse du <strong>${dateLabel}</strong> — vérifiez avant de calculer.`;
+  }
+}
 
-      // Auto-remplir les champs Glories depuis la dernière analyse de la parcelle
-      // Aph1 est propre à chaque parcelle — elle doit venir de l'historique, pas être saisie manuellement
-      const nomP = sel.value;
-      const analyses = (state.analyses[nomP] || []).slice().sort((a, b) => a.date < b.date ? 1 : -1);
-      const derniere = analyses[0]; // la plus récente
-      if (derniere) {
-        const set = (id, val) => { const el = document.getElementById(id); if (el && val != null) el.value = val; };
-        set('pred-sucre',       derniere.tavp   != null ? derniere.tavp.toFixed(2)    : null);
-        set('pred-at',          derniere.at     != null ? derniere.at.toFixed(2)      : null);
-        set('pred-malique',     derniere.malique!= null ? derniere.malique.toFixed(2) : null);
-        set('pred-tartrique',   derniere.tartrique!=null? derniere.tartrique.toFixed(2): null);
-        set('pred-mb',          derniere.mBaies != null ? derniere.mBaies.toFixed(1)  : null);
-        set('pred-aph1',        derniere.aph1   != null ? Math.round(derniere.aph1)   : null);
-        set('pred-aph35',       derniere.aph35  != null ? Math.round(derniere.aph35)  : null);
-        set('pred-do280',       derniere.do280  != null ? derniere.do280.toFixed(1)   : null);
-        set('pred-date-analyse', derniere.date  || null); // date du contrôle → J+0 du modèle
-        genererInputsMeteo(); // recalculer les labels météo depuis la nouvelle date d'analyse
-        // Indicateur visuel
-        const infoEl = document.getElementById('pred-info-derniere-analyse');
-        if (infoEl) {
-          infoEl.style.display = 'block';
-          infoEl.innerHTML = `📋 Données pré-remplies depuis l'analyse du <strong>${derniere.date}</strong> — vérifiez avant de calculer.`;
-        }
+function bindPredParcelle() {
+  const selParcelle = document.getElementById('pred-parcelle');
+  const selAnalyse  = document.getElementById('pred-select-analyse');
+  const wrapAnalyse = document.getElementById('pred-select-analyse-wrap');
+
+  if (selParcelle) {
+    selParcelle.onchange = () => {
+      const nomP = selParcelle.value;
+      const analyses = (state.analyses[nomP] || []).slice().sort((a, b) => b.date.localeCompare(a.date));
+
+      // Peupler le select des analyses
+      if (analyses.length > 0) {
+        selAnalyse.innerHTML = analyses.map(a => {
+          const label = a.date ? new Date(a.date + 'T12:00:00').toLocaleDateString('fr-FR') : a.date;
+          const tavp  = a.tavp != null ? ` — TAVP ${a.tavp.toFixed(1)} %vol` : '';
+          const aph   = a.aph1 != null ? `, Aph1 ${Math.round(a.aph1)} mg/L` : '';
+          return `<option value="${a.date}">${label}${tavp}${aph}</option>`;
+        }).join('');
+        wrapAnalyse.style.display = 'block';
+        // Pré-remplir avec la plus récente
+        remplirDepuisAnalyse(analyses[0]);
       } else {
+        selAnalyse.innerHTML = '<option value="">— Aucune analyse —</option>';
+        wrapAnalyse.style.display = analyses.length === 0 ? 'none' : 'block';
         const infoEl = document.getElementById('pred-info-derniere-analyse');
         if (infoEl) { infoEl.style.display = 'none'; infoEl.innerHTML = ''; }
       }
+    };
+  }
+
+  if (selAnalyse) {
+    selAnalyse.onchange = () => {
+      const nomP = selParcelle.value;
+      const date = selAnalyse.value;
+      if (!nomP || !date) return;
+      const analyses = (state.analyses[nomP] || []);
+      const a = analyses.find(x => x.date === date);
+      if (a) remplirDepuisAnalyse(a);
     };
   }
 }
