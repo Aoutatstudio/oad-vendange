@@ -916,10 +916,10 @@ if (sessionStorage.getItem('oad_auth') === '1') {
   <div class="card">
     <h2>🔮 Prédiction J+1 → J+7</h2>
     <div class="info-box">
-      Projection J+1→J+7 basée sur les degrés-jours cumulés (Tb = 0 °C) post-véraison.<br>
-      <strong>TAVP</strong> : +0,008 %vol/GDD·j (Coombe 1992 ; Ribéreau-Gayon et al. 2012) ·
-      <strong>MH₂</strong> : −0,004 g/L/GDD·j (Kliewer 1977 ; Sweetman et al. 2009) ·
-      <strong>TH₂</strong> : stable (Coombe 1992) ·
+      Projection J+1→J+7 basée sur les cumuls météo (P, GDD₀ base 0 °C) de la fenêtre — modèles Boulay 2026.<br>
+      <strong>TAVP</strong> : ΔTAVP(%) = −0,15 − 0,0787×P + 0,0621×GDD₀ (Boulay 2026, R²=0,235, n=46) ·
+      <strong>MH₂</strong> : ΔMH₂(%) = +5,23 − 0,0099×P − 0,1736×GDD₀ (Boulay 2026, R²=0,100, n=46) ·
+      <strong>TH₂</strong> : stable post-véraison ·
       <strong>MP%</strong> : projeté via <em>Aph3,5 = −2,56 × MB + 1055</em> (régression Bourgogne Pinot Noir, R²=0,48) + formule Glories (DO280 supposée stable). <strong>B/J</strong> : retiré (redondant avec MB).
     </div>
 
