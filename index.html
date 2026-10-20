@@ -2057,16 +2057,23 @@ function calculerPrediction() {
   //   sans coefficients quantitatifs validés → indicateur qualitatif uniquement.
   // =========================================================================
 
-  // ── Nouveau modèle calibré millésime 2025 ────────────────────────────────
-  // MB et Aph3,5 prédits INDÉPENDAMMENT depuis la météo (Boulay 2025, 24 intervalles, 10 parcelles)
-  //   ΔMB (%)    = +39,16 + 0,1484×P − 0,40586×GDD0   R²=0,32
-  //   ΔAph35 (%) = −69,44 − 0,2179×P + 0,75492×GDD0   R²=0,25
-  //   P = cumul précip. fenêtre (mm) ; GDD0 = degrés-jours base 0 °C (même base TAVP/malique)
-  //   Domaine calibration : P∈[7;101] mm, GDD0∈[90;152] °C·j, fenêtres 5–8 j
-  //   Bornes : ΔMB ∈ [−25%;+35%], ΔAph35 ∈ [−30%;+80%]
-  //   Coefficients IC95% : pluie_MB [−0,0001;+0,3159], GDD0_MB [−1,1838;−0,3069]
-  //                        pluie_Aph35 [−0,3725;−0,0673], GDD0_Aph35 [+0,4796;+1,5476]
-  // TAVP (+0,008/GDD), MH₂ (−0,004/GDD), TH₂ stable : inchangés (littérature)
+  // ── Modèles calibrés Boulay 2026 (régression OLS poolée, bootstrap par grappes) ─────────────
+  // Données : 2024+2025+2026, 46 intervalles (5–8 j), 10 parcelles, Côte de Beaune — Pinot Noir
+  // Domaine de validité : P ∈ [0,2 ; 101,3] mm · GDD₀ ∈ [57 ; 161,7] °C·j
+  //
+  // TAVP  (%) = −0,15 − 0,0787×P + 0,0621×GDD₀   R²=0,235  n=46  [Boulay 2026 — remplace Coombe]
+  //   IC95 % pluie [−0,131;−0,026]✔  GDD₀ [+0,017;+0,111]✔  Validation croisée : +7,1%/+4,8%
+  //
+  // ΔAph35 (%) = −69,44 − 0,2179×P + 0,7549×GDD₀  R²=0,245  n=24 (2025 seul)
+  //   IC95 % pluie [−0,376;−0,057]✔  GDD₀ [+0,486;+1,644]✔  Validation croisée : +11,0%
+  //   ⚠ Un seul millésime — transférabilité non vérifiable
+  //
+  // ΔMB   (%) = +39,16 + 0,1484×P − 0,40586×GDD₀  R²=0,320  n=24 (2025 seul, modèle poolé instable)
+  //   Bornes : ΔMB ∈ [−25%;+35%]  IC95 % pluie [−0,0001;+0,3159]  GDD₀ [−1,1838;−0,3069]
+  //
+  // MH₂ (−0,004 g/L/°C·j) et AT (dérivée de MH₂) : règles conservées (littérature + corroboration)
+  //   Coefficient thermique mesuré sur MH₂ : −0,0059 g/L/°C·j IC95% [−0,0089;−0,0006] → compatible
+  //   Modèle AT non transférable entre millésimes (−39,9% au test par retrait millésime)
   // ─────────────────────────────────────────────────────────────────────────
   const aph35_0 = parseFloat(document.getElementById('pred-aph35')?.value);
 
