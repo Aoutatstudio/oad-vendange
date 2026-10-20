@@ -2025,7 +2025,7 @@ function calculerPrediction() {
   const pluieTotal = pluieParJour.reduce((a,b) => a+b, 0);
 
   // =========================================================================
-  // MODÈLES D'ÉVOLUTION — SOURCES SCIENTIFIQUES UNIQUEMENT
+  // MODÈLES D'ÉVOLUTION — Boulay 2026 (régression OLS poolée 2024+2025+2026, bootstrap par grappes)
   // =========================================================================
   // TAVP (+0.008 %vol/GDD·j, Tb = 0 °C) :
   //   Accumulation de sucres après véraison. Coefficient issu des données de
