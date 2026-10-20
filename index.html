@@ -2371,10 +2371,13 @@ function calculerPrediction() {
 
       <div class="info-box" style="margin-top:14px;">
         ⚠️ <strong>Projection indicative uniquement.</strong><br>
-        <strong>TAVP</strong> : +0,008 %vol/GDD·j (Tb = 0 °C) — Coombe (1992) ; Ribéreau-Gayon et al. (2012) ·
-        <strong>MH₂</strong> : −0,004 g/L/GDD·j — Kliewer (1977) ; Sweetman et al. (2009) ·
-        <strong>TH₂</strong> stable post-véraison — Coombe (1992).<br>
-        <strong>MB &amp; Aph3,5</strong> : modèles empiriques recalibrés sur le millésime 2025 (24 intervalles, 10 parcelles Bourgogne Pinot Noir). Validés sur parcelles indépendantes : erreur réduite de 8,9 % (MB) et 11 % (Aph3,5) vs prédiction par la moyenne. <strong>Ne s'applique pas en cas de pression sanitaire marquée (Botrytis)</strong> — le modèle perd tout pouvoir prédictif dans ce contexte.<br>
+        <strong>Modèles Boulay 2026</strong> — OLS poolée 2024+2025+2026, bootstrap par grappes, 10 parcelles Côte de Beaune Pinot Noir.<br>
+        <strong>TAVP</strong> : ΔTAVP(%) = −0,15 − 0,0787×P + 0,0621×GDD₀ · R²=0,235, n=46 · validation croisée +7,1%/+4,8% ✔<br>
+        <strong>MH₂</strong> : ΔMH₂(%) = +5,23 − 0,0099×P − 0,1736×GDD₀ · R²=0,100, n=46 · effet thermique établi ✔<br>
+        <strong>MB</strong> : ΔMB(%) = +14,95 + 0,0435×P − 0,1171×GDD₀ · R²=0,055, n=46 · ⚠ coefficients non établis (Botrytis 2024)<br>
+        <strong>Aph3,5</strong> : ΔAph3,5(%) = −69,44 − 0,2179×P + 0,7549×GDD₀ · R²=0,245, n=24 (2025 seul) · validation +11% ✔ · ⚠ un seul millésime<br>
+        <strong>TH₂</strong> stable post-véraison · <strong>AT</strong> dérivée de ΔMH₂ × 0,67 (facteur d'équivalence molaire H₂SO₄/malique).<br>
+        Application : valeur prédite = valeur J₀ × (1 + Δ/100). <strong>Ne s'applique pas en cas de pression sanitaire marquée (Botrytis)</strong>.<br>
         Confirmez toujours avec une analyse terrain avant de décider.
       </div>
     </div>
