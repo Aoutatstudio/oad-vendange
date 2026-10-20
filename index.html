@@ -2116,10 +2116,13 @@ function calculerPrediction() {
       ? Math.max(2.0, at0 + deltaMalique * 0.67)
       : Math.max(2.0, at0 - gddCumul * 0.002);
 
-    // ── MB — valeur centrale + bornes IC95% ───────────────────────────────
-    const deltaMB_cent = 39.16 + 0.1484    * P_j - 0.40586 * GDD0_j;
-    const deltaMB_low  = 39.16 + (-0.0001) * P_j - 1.1838  * GDD0_j; // borne basse
-    const deltaMB_high = 39.16 + 0.3159    * P_j - 0.3069  * GDD0_j; // borne haute
+    // ── MB [Boulay 2026 — régression OLS poolée 2024+2025+2026, n=46, R²=0,055] ────────────────
+    // ΔMB (%) = +14,95 + 0,0435×P − 0,1171×GDD₀  →  MB prédit = MB_J0 × (1 + Δ/100)
+    // IC95% pluie [−0,045;+0,134]✘  GDD₀ [−0,343;+0,073]✘  ⚠ aucun coefficient établi
+    // Bornes : ΔMB ∈ [−25%;+35%]
+    const deltaMB_cent = 14.95 + 0.0435    * P_j - 0.1171  * GDD0_j;
+    const deltaMB_low  = 14.95 + (-0.045)  * P_j - 0.343   * GDD0_j; // borne basse IC95%
+    const deltaMB_high = 14.95 + 0.134     * P_j + 0.073   * GDD0_j; // borne haute IC95%
     const deltaMB_cent_c = Math.min(35, Math.max(-25, deltaMB_cent));
     const deltaMB_low_c  = Math.min(35, Math.max(-25, deltaMB_low ));
     const deltaMB_high_c = Math.min(35, Math.max(-25, deltaMB_high));
