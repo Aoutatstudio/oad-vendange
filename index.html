@@ -2753,7 +2753,12 @@ async function recupererMeteoAuto() {
   } catch(e) {
     status.className = 'meteo-status err';
     status.style.display = '';
-    status.textContent = `❌ Erreur météo : ${e.message || e}. Vérifiez votre connexion internet et la fiche parcelle (code postal valide ?).`;
+    const msg = e.message || String(e);
+    const is503 = msg.includes('503') || msg.toLowerCase().includes('overload');
+    const conseil = is503
+      ? 'Le serveur Open-Meteo est temporairement indisponible. Réessayez dans quelques minutes, ou saisissez les données météo manuellement.'
+      : 'Vérifiez votre connexion internet et la fiche parcelle (code postal / coordonnées GPS valides ?).';
+    status.innerHTML = `❌ <strong>Erreur météo :</strong> ${msg}<br><span style="font-size:0.9em;opacity:0.85;">${conseil}</span>`;
     console.error('[OAD météo]', e);
   }
 
