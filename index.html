@@ -2667,13 +2667,25 @@ async function recupererMeteoAuto() {
     //   → forecastDays = max(1, 8 - pastDays)
     const forecastDays = Math.max(1, 8 - pastDays);
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${parcelle.lat}&longitude=${parcelle.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=Europe%2FParis&past_days=${pastDays}&forecast_days=${forecastDays}`;
-    const res = await fetch(url);
-    const data = await res.json();
+
+    // Retry automatique (3 tentatives, 2s entre chaque) pour les erreurs de surcharge
+    let data;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      if (attempt > 1) {
+        status.className = 'meteo-status';
+        status.style.display = '';
+        status.textContent = `⏳ Serveur surchargé — nouvelle tentative ${attempt}/3…`;
+        await new Promise(r => setTimeout(r, 2000));
+      }
+      const res = await fetch(url);
+      data = await res.json();
+      if (!data.error) break; // succès
+      if (attempt === 3) {
+        throw new Error(`API Open-Meteo : ${data.reason || JSON.stringify(data)}`);
+      }
+    }
 
     // Vérification explicite de la réponse
-    if (data.error) {
-      throw new Error(`API Open-Meteo : ${data.reason || JSON.stringify(data)}`);
-    }
     if (!data.daily || !data.daily.temperature_2m_max) {
       throw new Error(`Réponse inattendue de l'API : ${JSON.stringify(data).slice(0, 200)}`);
     }
