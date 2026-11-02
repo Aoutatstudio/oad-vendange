@@ -2670,20 +2670,35 @@ async function recupererMeteoAuto() {
 
     // Retry automatique (3 tentatives, 2s entre chaque) pour les erreurs de surcharge
     let data;
+    let lastError = null;
     for (let attempt = 1; attempt <= 3; attempt++) {
       if (attempt > 1) {
         status.className = 'meteo-status';
         status.style.display = '';
-        status.textContent = `⏳ Serveur surchargé — nouvelle tentative ${attempt}/3…`;
+        status.textContent = `⏳ Serveur météo surchargé — nouvelle tentative ${attempt}/3 (attente 2s)…`;
         await new Promise(r => setTimeout(r, 2000));
       }
-      const res = await fetch(url);
-      data = await res.json();
-      if (!data.error) break; // succès
-      if (attempt === 3) {
-        throw new Error(`API Open-Meteo : ${data.reason || JSON.stringify(data)}`);
+      try {
+        const res = await fetch(url);
+        // Gérer les erreurs HTTP (503, 429, etc.)
+        if (!res.ok && res.status !== 200) {
+          lastError = `Erreur HTTP ${res.status}`;
+          continue; // retry
+        }
+        data = await res.json();
+        if (data.error) {
+          lastError = `API Open-Meteo : ${data.reason || JSON.stringify(data)}`;
+          // "overloaded" → on retente, autre erreur → on abandonne
+          if (!String(data.reason || '').toLowerCase().includes('overload')) break;
+          continue; // retry si surchargé
+        }
+        lastError = null;
+        break; // succès
+      } catch(fetchErr) {
+        lastError = fetchErr.message || String(fetchErr);
       }
     }
+    if (lastError) throw new Error(lastError);
 
     // Vérification explicite de la réponse
     if (!data.daily || !data.daily.temperature_2m_max) {
