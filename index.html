@@ -2756,7 +2756,7 @@ async function recupererMeteoAuto() {
 
   } catch(e) {
     status.className = 'meteo-status err';
-    status.style.display = '';
+    status.style.display = 'block';
     const msg = e.message || String(e);
     const is503 = msg.includes('503') || msg.toLowerCase().includes('overload');
     const conseil = is503
