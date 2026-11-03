@@ -2717,21 +2717,21 @@ async function recupererMeteoAuto() {
     }
     const daily = data.daily;
 
-    // Trouver l'index de la date d'analyse dans daily.time (robuste aux décalages d'API)
-    const dateAnalyseStr = dateAnalyse.toISOString().slice(0, 10); // "YYYY-MM-DD"
-    const idxAnalyse = daily.time ? daily.time.indexOf(dateAnalyseStr) : -1;
-    if (idxAnalyse === -1) {
-      // Date d'analyse absente de la réponse API → fallback sur past_days
-      console.warn('[OAD météo] date analyse', dateAnalyseStr, 'absente de daily.time:', daily.time?.slice(0,5));
+    // Remplissage des champs
+    // - API archive : daily.time[0..6] = J+1..J+7 → baseIdx = 0, offset = 0
+    // - API forecast : chercher J+1 dans daily.time pour trouver baseIdx
+    let baseIdx = 0;
+    if (!useArchive && daily.time) {
+      const idxJ1 = daily.time.indexOf(dateJ1str);
+      baseIdx = idxJ1 >= 0 ? idxJ1 : 0;
     }
-    const baseIdx = idxAnalyse >= 0 ? idxAnalyse : 0; // fallback: index 0
 
     let nbValSet = 0;
     for (let i = 0; i < 7; i++) {
       const tmaxEl  = document.getElementById('tmax-'  + i);
       const tminEl  = document.getElementById('tmin-'  + i);
       const pluieEl = document.getElementById('pluie-' + i);
-      const apiIdx  = baseIdx + i + 1; // J+1..J+7 depuis la date d'analyse
+      const apiIdx  = baseIdx + i; // archive: 0..6 = J+1..J+7 | forecast: baseIdx..baseIdx+6
       const tmax = daily.temperature_2m_max?.[apiIdx];
       const tmin = daily.temperature_2m_min?.[apiIdx];
       const pluie = daily.precipitation_sum?.[apiIdx];
@@ -2741,7 +2741,7 @@ async function recupererMeteoAuto() {
     }
 
     if (nbValSet === 0) {
-      throw new Error(`Données météo indisponibles pour la période ${dateAnalyseStr} → J+7 (lat=${parcelle.lat.toFixed(3)}, lon=${parcelle.lon.toFixed(3)}). Vérifiez les coordonnées GPS de la parcelle.`);
+      throw new Error(`Données météo indisponibles pour la période ${dateJ1str} → ${dateJ7str} (lat=${parcelle.lat.toFixed(3)}, lon=${parcelle.lon.toFixed(3)}).`);
     }
     calculerGDD();
 
