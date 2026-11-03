@@ -2673,9 +2673,9 @@ async function recupererMeteoAuto() {
     let lastError = null;
     for (let attempt = 1; attempt <= 3; attempt++) {
       if (attempt > 1) {
-        status.className = 'meteo-status';
-        status.style.display = '';
-        status.textContent = `⏳ Serveur météo surchargé — nouvelle tentative ${attempt}/3 (attente 2s)…`;
+        status.className = 'meteo-status err';
+        status.style.display = 'block';
+        status.textContent = `⏳ Serveur météo surchargé — nouvelle tentative ${attempt}/3 (attente 3s)…`;
         await new Promise(r => setTimeout(r, 3000));
       }
       try {
