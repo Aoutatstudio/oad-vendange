@@ -2743,8 +2743,8 @@ async function recupererMeteoAuto() {
       : '';
     const verifyUrl = url;
     // Dates réelles reçues de l'API (pour vérification)
-    const dateJ1_api = daily.time ? daily.time[1] : '?';
-    const dateJ7_api = daily.time ? daily.time[7] : '?';
+    const dateJ1_api = daily.time ? daily.time[baseIdx + 1] : '?';
+    const dateJ7_api = daily.time ? daily.time[baseIdx + 7] : '?';
     status.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <span style="font-size:1.4em;">✅</span>
