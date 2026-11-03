@@ -2659,7 +2659,9 @@ async function recupererMeteoAuto() {
     // - Toutes passées (J+7 < today) → API archive ERA5 (plus fiable pour données historiques)
     // - Contient des jours futurs → API forecast (prévisions AROME)
     let url, useArchive;
-    if (dateJ7 < today) {
+    // ERA5 a ~5 jours de délai → n'utiliser l'archive que si J+7 est > 7j dans le passé
+    const cutoffArchive = new Date(today); cutoffArchive.setDate(cutoffArchive.getDate() - 7);
+    if (dateJ7 < cutoffArchive) {
       // API archive : start_date=J+1, end_date=J+7 → daily.time[0..6] = J+1..J+7
       useArchive = true;
       url = `https://archive-api.open-meteo.com/v1/archive?latitude=${parcelle.lat}&longitude=${parcelle.lon}&start_date=${dateJ1str}&end_date=${dateJ7str}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Europe%2FParis`;
