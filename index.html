@@ -2649,107 +2649,66 @@ async function recupererMeteoAuto() {
     const dateAnalyseInput = document.getElementById('pred-date-analyse')?.value;
     const dateAnalyse = dateAnalyseInput ? new Date(dateAnalyseInput + 'T00:00:00') : new Date(today);
     const pastDaysRaw = Math.max(0, Math.round((today - dateAnalyse) / 86400000));
-    // Dates J+1..J+7 à récupérer
-    const dateJ1 = new Date(dateAnalyse); dateJ1.setDate(dateJ1.getDate() + 1);
-    const dateJ7 = new Date(dateAnalyse); dateJ7.setDate(dateJ7.getDate() + 7);
-    const dateJ1str = dateJ1.toISOString().slice(0,10);
-    const dateJ7str = dateJ7.toISOString().slice(0,10);
-
-    // Choisir l'API selon si les dates sont dans le passé ou le futur
-    // - Toutes passées (J+7 < today) → API archive ERA5 (plus fiable pour données historiques)
-    // - Contient des jours futurs → API forecast (prévisions AROME)
-    let url, useArchive;
-    // ERA5 a ~5 jours de délai → n'utiliser l'archive que si J+7 est > 7j dans le passé
-    const cutoffArchive = new Date(today); cutoffArchive.setDate(cutoffArchive.getDate() - 7);
-    if (dateJ7 < cutoffArchive) {
-      // API archive : start_date=J+1, end_date=J+7 → daily.time[0..6] = J+1..J+7
-      useArchive = true;
-      url = `https://archive-api.open-meteo.com/v1/archive?latitude=${parcelle.lat}&longitude=${parcelle.lon}&start_date=${dateJ1str}&end_date=${dateJ7str}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Europe%2FParis`;
-    } else {
-      // API forecast : past_days pour avoir les données réelles + prévisions
-      useArchive = false;
-      const pastDays = Math.min(pastDaysRaw, 92);
-      if (pastDaysRaw > 92) {
-        status.className = 'meteo-status err';
-        status.style.display = 'block';
-        status.textContent = `❌ La date d'analyse est trop ancienne (${pastDaysRaw} jours) — utilisez l'API archive. Contactez le support.`;
-        btn.innerHTML = '🌤 Récupérer la météo automatiquement';
-        btn.disabled = false;
-        return;
-      }
-      const forecastDays = Math.max(1, 8 - pastDays);
-      url = `https://api.open-meteo.com/v1/forecast?latitude=${parcelle.lat}&longitude=${parcelle.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=Europe%2FParis&past_days=${pastDays}&forecast_days=${forecastDays}`;
+    // Open-Meteo free tier : past_days ≤ 92
+    const pastDays = Math.min(pastDaysRaw, 92);
+    if (pastDaysRaw > 92) {
+      status.className = 'meteo-status err';
+      status.style.display = 'block';
+      status.textContent = `❌ La date d'analyse est trop ancienne (${pastDaysRaw} jours > 92j). Saisissez la météo manuellement.`;
+      btn.innerHTML = '🌤 Récupérer la météo automatiquement';
+      btn.disabled = false;
+      return;
     }
+    const forecastDays = Math.max(1, 8 - pastDays);
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${parcelle.lat}&longitude=${parcelle.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=Europe%2FParis&past_days=${pastDays}&forecast_days=${forecastDays}`;
 
-    // Retry automatique (3 tentatives, 2s entre chaque) pour les erreurs de surcharge
-    let data;
-    let lastError = null;
+    // Fetch avec timeout 10s + retry x3 si serveur surchargé
+    let data = null;
+    let lastErr = null;
     for (let attempt = 1; attempt <= 3; attempt++) {
       if (attempt > 1) {
         status.className = 'meteo-status err';
         status.style.display = 'block';
-        status.textContent = `⏳ Serveur météo surchargé — nouvelle tentative ${attempt}/3 (attente 3s)…`;
+        status.textContent = `⏳ Serveur météo surchargé — nouvelle tentative ${attempt}/3…`;
         await new Promise(r => setTimeout(r, 3000));
       }
       try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 10000); // timeout 10s
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 10000);
         let res;
-        try {
-          res = await fetch(url, { signal: controller.signal });
-        } finally {
-          clearTimeout(timer);
+        try { res = await fetch(url, { signal: ctrl.signal }); }
+        finally { clearTimeout(t); }
+        if (!res.ok) { lastErr = `Erreur HTTP ${res.status}`; continue; }
+        const json = await res.json();
+        if (json.error) {
+          lastErr = `API Open-Meteo : ${json.reason || JSON.stringify(json)}`;
+          if (String(json.reason||'').toLowerCase().includes('overload')) continue;
+          break;
         }
-        // Gérer les erreurs HTTP (503, 429, etc.)
-        if (!res.ok) {
-          lastError = `Erreur HTTP ${res.status}`;
-          continue; // retry
-        }
-        data = await res.json();
-        if (data.error) {
-          lastError = `API Open-Meteo : ${data.reason || JSON.stringify(data)}`;
-          if (!String(data.reason || '').toLowerCase().includes('overload')) break;
-          continue; // retry si surchargé
-        }
-        lastError = null;
-        break; // succès
-      } catch(fetchErr) {
-        lastError = fetchErr.name === 'AbortError' ? 'Délai dépassé (>10s) — serveur trop lent' : (fetchErr.message || String(fetchErr));
+        data = json; lastErr = null; break;
+      } catch(e) {
+        lastErr = e.name === 'AbortError' ? 'Délai dépassé (serveur trop lent) — réessayez' : (e.message || String(e));
       }
     }
-    if (lastError) throw new Error(lastError);
+    if (!data) throw new Error(lastErr || 'Erreur inconnue');
 
-    // Vérification explicite de la réponse
     if (!data.daily || !data.daily.temperature_2m_max) {
-      throw new Error(`Réponse inattendue de l'API : ${JSON.stringify(data).slice(0, 200)}`);
+      throw new Error(`Réponse inattendue de l'API météo`);
     }
     const daily = data.daily;
 
-    // Remplissage des champs
-    // - API archive : daily.time[0..6] = J+1..J+7 → baseIdx = 0, offset = 0
-    // - API forecast : chercher J+1 dans daily.time pour trouver baseIdx
-    let baseIdx = 0;
-    if (!useArchive && daily.time) {
-      const idxJ1 = daily.time.indexOf(dateJ1str);
-      baseIdx = idxJ1 >= 0 ? idxJ1 : 0;
-    }
-
-    let nbValSet = 0;
+    // Mapping : daily.time[0] = today-pastDays = dateAnalyse → index i+1 = J+i+1
     for (let i = 0; i < 7; i++) {
       const tmaxEl  = document.getElementById('tmax-'  + i);
       const tminEl  = document.getElementById('tmin-'  + i);
       const pluieEl = document.getElementById('pluie-' + i);
-      const apiIdx  = baseIdx + i; // archive: 0..6 = J+1..J+7 | forecast: baseIdx..baseIdx+6
-      const tmax = daily.temperature_2m_max?.[apiIdx];
-      const tmin = daily.temperature_2m_min?.[apiIdx];
-      const pluie = daily.precipitation_sum?.[apiIdx];
-      if (tmaxEl && tmax != null) { tmaxEl.value = tmax.toFixed(1); nbValSet++; }
-      if (tminEl && tmin != null) { tminEl.value = tmin.toFixed(1); }
-      if (pluieEl && pluie != null) { pluieEl.value = Math.round(pluie); }
-    }
-
-    if (nbValSet === 0) {
-      throw new Error(`Données météo indisponibles pour la période ${dateJ1str} → ${dateJ7str} (lat=${parcelle.lat.toFixed(3)}, lon=${parcelle.lon.toFixed(3)}).`);
+      const apiIdx  = i + 1;
+      if (tmaxEl && daily.temperature_2m_max[apiIdx] != null)
+        tmaxEl.value = daily.temperature_2m_max[apiIdx].toFixed(1);
+      if (tminEl && daily.temperature_2m_min[apiIdx] != null)
+        tminEl.value = daily.temperature_2m_min[apiIdx].toFixed(1);
+      if (pluieEl && daily.precipitation_sum?.[apiIdx] != null)
+        pluieEl.value = Math.round(daily.precipitation_sum[apiIdx]);
     }
     calculerGDD();
 
