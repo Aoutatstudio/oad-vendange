@@ -2649,24 +2649,35 @@ async function recupererMeteoAuto() {
     const dateAnalyseInput = document.getElementById('pred-date-analyse')?.value;
     const dateAnalyse = dateAnalyseInput ? new Date(dateAnalyseInput + 'T00:00:00') : new Date(today);
     const pastDaysRaw = Math.max(0, Math.round((today - dateAnalyse) / 86400000));
-    // Open-Meteo free tier : past_days ≤ 92. Au-delà, on plafonne et on informe.
-    const pastDays = Math.min(pastDaysRaw, 92);
-    if (pastDaysRaw > 92) {
-      status.className = 'meteo-status err';
-      status.style.display = '';
-      status.textContent = `❌ La date d'analyse est trop ancienne (${pastDaysRaw} jours) — Open-Meteo limite les données historiques à 92 jours. Mettez à jour la date d'analyse.`;
-      btn.innerHTML = '🌤 Récupérer la météo automatiquement';
-      btn.disabled = false;
-      return;
-    }
+    // Dates J+1..J+7 à récupérer
+    const dateJ1 = new Date(dateAnalyse); dateJ1.setDate(dateJ1.getDate() + 1);
+    const dateJ7 = new Date(dateAnalyse); dateJ7.setDate(dateJ7.getDate() + 7);
+    const dateJ1str = dateJ1.toISOString().slice(0,10);
+    const dateJ7str = dateJ7.toISOString().slice(0,10);
 
-    // past_days=N : l'API renvoie N jours de données réelles avant aujourd'hui
-    // + forecast_days jours de prévisions à partir d'aujourd'hui
-    // Index 0 = date d'analyse, index 1..7 = J+1..J+7 (réels puis prévisions)
-    // On a besoin que l'index 7 existe : 7 ≤ pastDays + forecastDays - 1
-    //   → forecastDays = max(1, 8 - pastDays)
-    const forecastDays = Math.max(1, 8 - pastDays);
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${parcelle.lat}&longitude=${parcelle.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=Europe%2FParis&past_days=${pastDays}&forecast_days=${forecastDays}`;
+    // Choisir l'API selon si les dates sont dans le passé ou le futur
+    // - Toutes passées (J+7 < today) → API archive ERA5 (plus fiable pour données historiques)
+    // - Contient des jours futurs → API forecast (prévisions AROME)
+    let url, useArchive;
+    if (dateJ7 < today) {
+      // API archive : start_date=J+1, end_date=J+7 → daily.time[0..6] = J+1..J+7
+      useArchive = true;
+      url = `https://archive-api.open-meteo.com/v1/archive?latitude=${parcelle.lat}&longitude=${parcelle.lon}&start_date=${dateJ1str}&end_date=${dateJ7str}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Europe%2FParis`;
+    } else {
+      // API forecast : past_days pour avoir les données réelles + prévisions
+      useArchive = false;
+      const pastDays = Math.min(pastDaysRaw, 92);
+      if (pastDaysRaw > 92) {
+        status.className = 'meteo-status err';
+        status.style.display = 'block';
+        status.textContent = `❌ La date d'analyse est trop ancienne (${pastDaysRaw} jours) — utilisez l'API archive. Contactez le support.`;
+        btn.innerHTML = '🌤 Récupérer la météo automatiquement';
+        btn.disabled = false;
+        return;
+      }
+      const forecastDays = Math.max(1, 8 - pastDays);
+      url = `https://api.open-meteo.com/v1/forecast?latitude=${parcelle.lat}&longitude=${parcelle.lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=Europe%2FParis&past_days=${pastDays}&forecast_days=${forecastDays}`;
+    }
 
     // Retry automatique (3 tentatives, 2s entre chaque) pour les erreurs de surcharge
     let data;
