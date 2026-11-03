@@ -2706,24 +2706,31 @@ async function recupererMeteoAuto() {
     }
     const daily = data.daily;
 
-    // Mapping : tmax-i ↔ API index (i+1)
-    // Avec past_days=N : index 0 = date analyse (J+0), index 1..7 = J+1..J+7
-    // - jours passés (< today) : données météo réelles mesurées
-    // - jours futurs (≥ today) : prévisions AROME
+    // Trouver l'index de la date d'analyse dans daily.time (robuste aux décalages d'API)
+    const dateAnalyseStr = dateAnalyse.toISOString().slice(0, 10); // "YYYY-MM-DD"
+    const idxAnalyse = daily.time ? daily.time.indexOf(dateAnalyseStr) : -1;
+    if (idxAnalyse === -1) {
+      // Date d'analyse absente de la réponse API → fallback sur past_days
+      console.warn('[OAD météo] date analyse', dateAnalyseStr, 'absente de daily.time:', daily.time?.slice(0,5));
+    }
+    const baseIdx = idxAnalyse >= 0 ? idxAnalyse : 0; // fallback: index 0
+
+    let nbValSet = 0;
     for (let i = 0; i < 7; i++) {
       const tmaxEl  = document.getElementById('tmax-'  + i);
       const tminEl  = document.getElementById('tmin-'  + i);
       const pluieEl = document.getElementById('pluie-' + i);
-      const apiIdx  = i + 1; // J+1..J+7 depuis la date d'analyse
-      if (tmaxEl && daily.temperature_2m_max[apiIdx] != null) {
-        tmaxEl.value = daily.temperature_2m_max[apiIdx].toFixed(1);
-      }
-      if (tminEl && daily.temperature_2m_min[apiIdx] != null) {
-        tminEl.value = daily.temperature_2m_min[apiIdx].toFixed(1);
-      }
-      if (pluieEl && daily.precipitation_sum && daily.precipitation_sum[apiIdx] != null) {
-        pluieEl.value = Math.round(daily.precipitation_sum[apiIdx]);
-      }
+      const apiIdx  = baseIdx + i + 1; // J+1..J+7 depuis la date d'analyse
+      const tmax = daily.temperature_2m_max?.[apiIdx];
+      const tmin = daily.temperature_2m_min?.[apiIdx];
+      const pluie = daily.precipitation_sum?.[apiIdx];
+      if (tmaxEl && tmax != null) { tmaxEl.value = tmax.toFixed(1); nbValSet++; }
+      if (tminEl && tmin != null) { tminEl.value = tmin.toFixed(1); }
+      if (pluieEl && pluie != null) { pluieEl.value = Math.round(pluie); }
+    }
+
+    if (nbValSet === 0) {
+      throw new Error(`Données météo indisponibles pour la période ${dateAnalyseStr} → J+7 (lat=${parcelle.lat.toFixed(3)}, lon=${parcelle.lon.toFixed(3)}). Vérifiez les coordonnées GPS de la parcelle.`);
     }
     calculerGDD();
 
