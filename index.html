@@ -2690,23 +2690,29 @@ async function recupererMeteoAuto() {
         await new Promise(r => setTimeout(r, 3000));
       }
       try {
-        const res = await fetch(url);
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 10000); // timeout 10s
+        let res;
+        try {
+          res = await fetch(url, { signal: controller.signal });
+        } finally {
+          clearTimeout(timer);
+        }
         // Gérer les erreurs HTTP (503, 429, etc.)
-        if (!res.ok && res.status !== 200) {
+        if (!res.ok) {
           lastError = `Erreur HTTP ${res.status}`;
           continue; // retry
         }
         data = await res.json();
         if (data.error) {
           lastError = `API Open-Meteo : ${data.reason || JSON.stringify(data)}`;
-          // "overloaded" → on retente, autre erreur → on abandonne
           if (!String(data.reason || '').toLowerCase().includes('overload')) break;
           continue; // retry si surchargé
         }
         lastError = null;
         break; // succès
       } catch(fetchErr) {
-        lastError = fetchErr.message || String(fetchErr);
+        lastError = fetchErr.name === 'AbortError' ? 'Délai dépassé (>10s) — serveur trop lent' : (fetchErr.message || String(fetchErr));
       }
     }
     if (lastError) throw new Error(lastError);
