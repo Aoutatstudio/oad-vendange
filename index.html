@@ -2720,10 +2720,6 @@ async function recupererMeteoAuto() {
       ? `<strong>${pastDays} jour${pastDays>1?'s':''} de données réelles</strong> (📊 depuis le ${dateAnalyse.getDate()}/${dateAnalyse.getMonth()+1}) + `
       : '';
     const verifyUrl = url;
-    // Dates réelles reçues de l'API (pour vérification)
-    const dateJ1_api = daily.time ? daily.time[baseIdx] : '?';
-    const dateJ7_api = daily.time ? daily.time[baseIdx + 6] : '?';
-    const sourceLabel = useArchive ? 'ERA5 (archive)' : 'AROME (prévisions)';
     status.innerHTML = `
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <span style="font-size:1.4em;">✅</span>
@@ -2733,8 +2729,7 @@ async function recupererMeteoAuto() {
             ${joursPassesLabel}🔮 prévisions jusqu'au J+7
             &nbsp;·&nbsp; 📍 <strong>${commune}</strong>${cp !== '—' ? ` — 📮 ${cp}` : ''}
             &nbsp;·&nbsp; 🌐 ${parcelle.lat.toFixed(4)}°N, ${parcelle.lon.toFixed(4)}°E
-            &nbsp;·&nbsp; <strong>Période API :</strong> ${dateJ1_api} → ${dateJ7_api}
-            &nbsp;·&nbsp; Source : <a href="https://open-meteo.com" target="_blank" style="color:inherit;font-weight:600;">Open-Meteo</a> / ${sourceLabel}
+            &nbsp;·&nbsp; Source : <a href="https://open-meteo.com" target="_blank" style="color:inherit;font-weight:600;">Open-Meteo</a> / AROME
             &nbsp;·&nbsp; <a href="${verifyUrl}" target="_blank" style="color:inherit;text-decoration:underline;font-size:0.9em;">🔗 Données brutes (JSON)</a>
           </div>
         </div>
